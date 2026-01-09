@@ -1,0 +1,54 @@
+package net.p3pp3rf1y.sophisticateditemactions.common;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
+import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
+
+import java.util.Optional;
+import java.util.function.Function;
+
+public interface IBlockEntityItemActionHandler<T> extends IBlockItemActionHandler {
+	@Override
+	default boolean canActOn(Level level, BlockPos pos, BlockEntity blockEntity) {
+		return getObjectClass().isInstance(blockEntity);
+	}
+
+	@Override
+	default BlockPos getInteractionPosToActOn(BlockPos pos, BlockEntity blockEntity) {
+		return getObjectClass().isInstance(blockEntity) ? getDepositPosToActOn(pos, getObjectClass().cast(blockEntity)) : pos;
+	}
+
+	default BlockPos getDepositPosToActOn(BlockPos pos, T blockEntity) {
+		return pos;
+	}
+
+	@Override
+	default ItemMatchResult getItemMatch(ServerPlayer player, ItemStackKey stackKey, BlockPos pos) {
+		return getFromBlockEntity(player, pos, be -> getItemMatch(stackKey, be)).orElse(ItemMatchResult.NO_MATCH);
+	}
+
+	default <R> Optional<R> getFromBlockEntity(ServerPlayer player, BlockPos pos, Function<T, R> getter) {
+		return WorldHelper.getBlockEntity(player.level(), pos, getObjectClass()).map(getter);
+	}
+
+	@Override
+	default Optional<IDepositHandler> getDepositHandler(ServerPlayer player, BlockPos pos) {
+		return getFromBlockEntity(player, pos, this::getDepositHandler);
+	}
+
+	IDepositHandler getDepositHandler(T object);
+
+	@Override
+	default Optional<IRestockHandler> getRestockHandler(ServerPlayer player, BlockPos pos) {
+		return getFromBlockEntity(player, pos, this::getRestockHandler);
+	}
+
+	IRestockHandler getRestockHandler(T object);
+
+	ItemMatchResult getItemMatch(ItemStackKey stackKey, T object);
+
+	Class<T> getObjectClass();
+}

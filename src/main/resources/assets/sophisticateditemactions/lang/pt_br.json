@@ -1,0 +1,19 @@
+{
+  "key.sophisticateditemactions.item_highlight": "Destacar Armazenamento com Item",
+  "key.sophisticateditemactions.deposit_item": "Depositar Item no Armazenamento/Mochila",
+  "key.sophisticateditemactions.restock_item": "Repor Item do Armazenamento/Mochila",
+  "gui.sophisticateditemactions.status.matching_stacks_found": "Item exato encontrado em %s locais.",
+  "gui.sophisticateditemactions.status.matching_items_found": "Tipo de item encontrado em %s locais.",
+  "gui.sophisticateditemactions.status.no_matching_items_found": "Nenhum item exato ou tipo de item encontrado",
+  "gui.sophisticateditemactions.status.no_storage_in_range": "Nenhum armazenamento foi encontrado no alcance",
+  "gui.sophisticateditemactions.status.deposited_item": "Depositou %s no armazenamento",
+  "gui.sophisticateditemactions.status.deposited_items": "Depositou %s itens no armazenamento",
+  "gui.sophisticateditemactions.status.cannot_deposit_item": "Não foi possível depositar %s em nenhum armazenamento",
+  "gui.sophisticateditemactions.status.cannot_deposit_items": "Não foi possível depositar nenhum item no armazenamento",
+  "gui.sophisticateditemactions.status.restocked_item": "Repôs %s do armazenamento",
+  "gui.sophisticateditemactions.status.restocked_items": "Repôs %s itens do armazenamento",
+  "gui.sophisticateditemactions.status.cannot_restock_item": "Não foi possível repor %s de nenhum armazenamento",
+  "gui.sophisticateditemactions.status.cannot_restock_items": "Não foi possível repor nenhum item do armazenamento",
+  "gui.sophisticateditemactions.status.cannot_restock_full_stack": "A pilha %s já está cheia",
+  "gui.sophisticateditemactions.status.cannot_restock_full_stacks": "Todas as pilhas já estão cheias"
+}

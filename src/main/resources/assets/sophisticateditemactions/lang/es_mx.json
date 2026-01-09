@@ -1,0 +1,19 @@
+{
+  "key.sophisticateditemactions.item_highlight": "Resaltar almacenamiento con objeto",
+  "key.sophisticateditemactions.deposit_item": "Depositar objeto en almacenamiento/mochila",
+  "key.sophisticateditemactions.restock_item": "Reabastecer objeto desde almacenamiento/mochila",
+  "gui.sophisticateditemactions.status.matching_stacks_found": "Objeto exacto encontrado en %s ubicaciones.",
+  "gui.sophisticateditemactions.status.matching_items_found": "Tipo de objeto encontrado en %s ubicaciones.",
+  "gui.sophisticateditemactions.status.no_matching_items_found": "No se encontró ningún objeto exacto o tipo de objeto",
+  "gui.sophisticateditemactions.status.no_storage_in_range": "No se encontró almacenamiento en el rango",
+  "gui.sophisticateditemactions.status.deposited_item": "Se depositó %s en el almacenamiento",
+  "gui.sophisticateditemactions.status.deposited_items": "Se depositaron %s objetos en el almacenamiento",
+  "gui.sophisticateditemactions.status.cannot_deposit_item": "No se pudo depositar %s en ningún almacenamiento",
+  "gui.sophisticateditemactions.status.cannot_deposit_items": "No se pudieron depositar objetos en el almacenamiento",
+  "gui.sophisticateditemactions.status.restocked_item": "Se reabasteció %s desde el almacenamiento",
+  "gui.sophisticateditemactions.status.restocked_items": "Se reabastecieron %s objetos desde el almacenamiento",
+  "gui.sophisticateditemactions.status.cannot_restock_item": "No se pudo reabastecer %s desde ningún almacenamiento",
+  "gui.sophisticateditemactions.status.cannot_restock_items": "No se pudieron reabastecer objetos desde el almacenamiento",
+  "gui.sophisticateditemactions.status.cannot_restock_full_stack": "El stack %s ya está lleno",
+  "gui.sophisticateditemactions.status.cannot_restock_full_stacks": "Todos los stacks ya están llenos"
+}

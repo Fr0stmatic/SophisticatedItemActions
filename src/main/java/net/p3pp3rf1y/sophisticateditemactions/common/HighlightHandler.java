@@ -1,0 +1,141 @@
+package net.p3pp3rf1y.sophisticateditemactions.common;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
+import net.p3pp3rf1y.sophisticatedcore.network.SyncBlockHighlightsPayload;
+import net.p3pp3rf1y.sophisticatedcore.util.RandHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
+import net.p3pp3rf1y.sophisticateditemactions.client.gui.ItemActionsTranslationHelper;
+import net.p3pp3rf1y.sophisticateditemactions.network.RequestItemHighlightsPayload;
+import net.p3pp3rf1y.sophisticateditemactions.network.SyncEntityHighlightsPayload;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
+public class HighlightHandler {
+	public static final int MATCHING_STACK_HIGHLIGHT_COLOR = 0x4CAF50;
+	public static final int MATCHING_ITEM_HIGHLIGHT_COLOR = 0x42A5F5;
+	private static final int HIGHLIGHT_RANGE = 32;
+	public static void highlightItem(Player player, ItemStack stack) {
+		Map<ResourceLocation, List<BlockPos>> positions = new HashMap<>();
+
+		WorldHelper.getBlockEntitiesInRange(player.level(), player.blockPosition(), HIGHLIGHT_RANGE)
+				.forEach(be ->
+						ItemActionHandlerRegistry.getBlockHandlerIdFor(player.level(), be.getBlockPos(), be, IBlockItemActionHandler.Action.HIGHLIGHT)
+								.ifPresent(id -> positions.computeIfAbsent(id, k -> new ArrayList<>()).add(be.getBlockPos()))
+				);
+
+		Map<ResourceLocation, List<Integer>> entities = new HashMap<>();
+		player.level().getEntities(player, player.getBoundingBox().inflate(HIGHLIGHT_RANGE),
+						e -> e.distanceTo(player) <= HIGHLIGHT_RANGE)
+				.forEach(e ->
+						ItemActionHandlerRegistry.getEntityHandlerIdFor(e)
+								.ifPresent(id -> entities.computeIfAbsent(id, k -> new ArrayList<>()).add(e.getId()))
+				);
+		if (!positions.isEmpty() || !entities.isEmpty()) {
+			PacketDistributor.sendToServer(new RequestItemHighlightsPayload(stack, positions, entities));
+		} else {
+			player.displayClientMessage(ItemActionsTranslationHelper.INSTANCE.translStatusMessage("no_storage_in_range").setStyle(Style.EMPTY.withColor(0xFF5555)), true);
+			player.playSound(SoundEvents.NOTE_BLOCK_BASS.value(), 1, 0.45f + RandHelper.getRandomMinusOneToOne(player.level().random) * 0.1F);
+		}
+	}
+
+	public static void handleHighlight(Player player, ItemStackKey stackKey, Map<ResourceLocation, List<BlockPos>> storagePositions, Map<ResourceLocation, List<Integer>> entities) {
+		AtomicInteger stackMatchNumber = new AtomicInteger(0);
+		AtomicInteger itemMatchNumber = new AtomicInteger(0);
+
+		if (!(player instanceof ServerPlayer serverPlayer)) {
+			return;
+		}
+
+		List<BlockPos> stackPositions = new ArrayList<>();
+		List<BlockPos> itemPositions = new ArrayList<>();
+
+		storagePositions.forEach((handlerId, positions) ->
+				ItemActionHandlerRegistry.getBlockHandler(handlerId).ifPresent(handler ->
+						positions.forEach(pos -> {
+							switch (handler.getItemMatch(serverPlayer, stackKey, pos)) {
+								case MATCHING_STACK -> stackPositions.add(pos);
+								case MATCHING_ITEM -> itemPositions.add(pos);
+							}
+						})
+				)
+		);
+
+		stackMatchNumber.addAndGet(stackPositions.size());
+		itemMatchNumber.addAndGet(itemPositions.size());
+		PacketDistributor.sendToPlayer(serverPlayer, new SyncBlockHighlightsPayload(
+				Map.of(
+						MATCHING_STACK_HIGHLIGHT_COLOR, stackPositions,
+						MATCHING_ITEM_HIGHLIGHT_COLOR, itemPositions
+				)
+		));
+
+		List<Integer> stackEntities = new ArrayList<>();
+		List<Integer> itemEntities = new ArrayList<>();
+
+		entities.forEach((handlerId, entityIds) ->
+				ItemActionHandlerRegistry.getEntityHandler(handlerId).ifPresent(handler ->
+						entityIds.forEach(entityId -> {
+							Entity entity = player.level().getEntity(entityId);
+							if (entity == null) {
+								return;
+							}
+
+							switch (handler.getItemMatch(stackKey, entity)) {
+								case MATCHING_STACK -> stackEntities.add(entityId);
+								case MATCHING_ITEM -> itemEntities.add(entityId);
+							}
+						})
+				)
+		);
+
+		stackMatchNumber.addAndGet(stackEntities.size());
+		itemMatchNumber.addAndGet(itemEntities.size());
+
+		PacketDistributor.sendToPlayer(serverPlayer, new SyncEntityHighlightsPayload(
+				Map.of(
+						MATCHING_STACK_HIGHLIGHT_COLOR, stackEntities,
+						MATCHING_ITEM_HIGHLIGHT_COLOR, itemEntities
+				)
+		));
+
+		Level level = player.level();
+
+		Component message = null;
+		if (stackMatchNumber.get() == 0 && itemMatchNumber.get() == 0) {
+			message = ItemActionsTranslationHelper.INSTANCE.translStatusMessage("no_matching_items_found");
+			player.playNotifySound(SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
+		} else {
+			if (stackMatchNumber.get() > 0) {
+				message = ItemActionsTranslationHelper.INSTANCE.translStatusMessage("matching_stacks_found", Component.literal(String.valueOf(stackMatchNumber.get())).withColor(0x4CAF50));
+			}
+			if (itemMatchNumber.get() > 0) {
+				MutableComponent itemMessage = ItemActionsTranslationHelper.INSTANCE.translStatusMessage("matching_items_found", Component.literal(String.valueOf(itemMatchNumber.get())).withColor(0x42A5F5));
+				if (message != null) {
+					message = message.plainCopy().append(" ").append(itemMessage);
+				} else {
+					message = itemMessage;
+				}
+			}
+			player.playNotifySound(SoundEvents.NOTE_BLOCK_CHIME.value(), SoundSource.PLAYERS, 1, 0.95f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
+		}
+
+		player.displayClientMessage(message, true);
+	}
+}
