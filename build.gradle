@@ -361,6 +361,7 @@ task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     mainFile.changelogType = 'markdown'
     mainFile.changelog = { project.ext.changelog }
     mainFile.addModLoader('NeoForge')
+    mainFile.addModLoader('Forge')
     mainFile.releaseType = "${release_type}"
     "${release_versions}".split(',').each {
         mainFile.addGameVersion("${it}")
@@ -376,7 +377,7 @@ modrinth {
     versionType = "${release_type}"
     uploadFile = jar
     gameVersions = "${release_versions}".split(',').collect { e -> e }
-    loaders = ["neoforge"]
+    loaders = ["forge", "neoforge"]
     dependencies {
         required.project "sophisticated-core"
         optional.project "jei"
