@@ -12,14 +12,15 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
-import net.p3pp3rf1y.sophisticatedcore.network.SyncBlockHighlightsPayload;
+import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
+import net.p3pp3rf1y.sophisticatedcore.network.SyncBlockHighlightsMessage;
 import net.p3pp3rf1y.sophisticatedcore.util.RandHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 import net.p3pp3rf1y.sophisticateditemactions.client.gui.ItemActionsTranslationHelper;
-import net.p3pp3rf1y.sophisticateditemactions.network.RequestItemHighlightsPayload;
-import net.p3pp3rf1y.sophisticateditemactions.network.SyncEntityHighlightsPayload;
+import net.p3pp3rf1y.sophisticateditemactions.network.ItemActionsPacketHandler;
+import net.p3pp3rf1y.sophisticateditemactions.network.RequestItemHighlightsMessage;
+import net.p3pp3rf1y.sophisticateditemactions.network.SyncEntityHighlightsMessage;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,6 +32,7 @@ public class HighlightHandler {
 	public static final int MATCHING_STACK_HIGHLIGHT_COLOR = 0x4CAF50;
 	public static final int MATCHING_ITEM_HIGHLIGHT_COLOR = 0x42A5F5;
 	private static final int HIGHLIGHT_RANGE = 32;
+
 	public static void highlightItem(Player player, ItemStack stack) {
 		Map<ResourceLocation, List<BlockPos>> positions = new HashMap<>();
 
@@ -48,7 +50,7 @@ public class HighlightHandler {
 								.ifPresent(id -> entities.computeIfAbsent(id, k -> new ArrayList<>()).add(e.getId()))
 				);
 		if (!positions.isEmpty() || !entities.isEmpty()) {
-			PacketDistributor.sendToServer(new RequestItemHighlightsPayload(stack, positions, entities));
+			ItemActionsPacketHandler.INSTANCE.sendToServer(new RequestItemHighlightsMessage(stack, positions, entities));
 		} else {
 			player.displayClientMessage(ItemActionsTranslationHelper.INSTANCE.translStatusMessage("no_storage_in_range").setStyle(Style.EMPTY.withColor(0xFF5555)), true);
 			player.playSound(SoundEvents.NOTE_BLOCK_BASS.value(), 1, 0.45f + RandHelper.getRandomMinusOneToOne(player.level().random) * 0.1F);
@@ -79,7 +81,7 @@ public class HighlightHandler {
 
 		stackMatchNumber.addAndGet(stackPositions.size());
 		itemMatchNumber.addAndGet(itemPositions.size());
-		PacketDistributor.sendToPlayer(serverPlayer, new SyncBlockHighlightsPayload(
+		PacketHandler.INSTANCE.sendToClient(serverPlayer, new SyncBlockHighlightsMessage(
 				Map.of(
 						MATCHING_STACK_HIGHLIGHT_COLOR, stackPositions,
 						MATCHING_ITEM_HIGHLIGHT_COLOR, itemPositions
@@ -108,7 +110,7 @@ public class HighlightHandler {
 		stackMatchNumber.addAndGet(stackEntities.size());
 		itemMatchNumber.addAndGet(itemEntities.size());
 
-		PacketDistributor.sendToPlayer(serverPlayer, new SyncEntityHighlightsPayload(
+		ItemActionsPacketHandler.INSTANCE.sendToClient(serverPlayer, new SyncEntityHighlightsMessage(
 				Map.of(
 						MATCHING_STACK_HIGHLIGHT_COLOR, stackEntities,
 						MATCHING_ITEM_HIGHLIGHT_COLOR, itemEntities
@@ -123,10 +125,10 @@ public class HighlightHandler {
 			player.playNotifySound(SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
 		} else {
 			if (stackMatchNumber.get() > 0) {
-				message = ItemActionsTranslationHelper.INSTANCE.translStatusMessage("matching_stacks_found", Component.literal(String.valueOf(stackMatchNumber.get())).withColor(0x4CAF50));
+				message = ItemActionsTranslationHelper.INSTANCE.translStatusMessage("matching_stacks_found", Component.literal(String.valueOf(stackMatchNumber.get())).getStyle().withColor(0x4CAF50));
 			}
 			if (itemMatchNumber.get() > 0) {
-				MutableComponent itemMessage = ItemActionsTranslationHelper.INSTANCE.translStatusMessage("matching_items_found", Component.literal(String.valueOf(itemMatchNumber.get())).withColor(0x42A5F5));
+				MutableComponent itemMessage = ItemActionsTranslationHelper.INSTANCE.translStatusMessage("matching_items_found", Component.literal(String.valueOf(itemMatchNumber.get())).getStyle().withColor(0x42A5F5));
 				if (message != null) {
 					message = message.plainCopy().append(" ").append(itemMessage);
 				} else {

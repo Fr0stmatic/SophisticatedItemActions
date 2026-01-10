@@ -14,14 +14,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.util.RandHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 import net.p3pp3rf1y.sophisticateditemactions.client.gui.ItemActionsTranslationHelper;
-import net.p3pp3rf1y.sophisticateditemactions.network.DepositItemsPayload;
-import net.p3pp3rf1y.sophisticateditemactions.network.RestockItemsPayload;
-import net.p3pp3rf1y.sophisticateditemactions.network.SyncItemTransfersPayload;
+import net.p3pp3rf1y.sophisticateditemactions.network.DepositItemsMessage;
+import net.p3pp3rf1y.sophisticateditemactions.network.ItemActionsPacketHandler;
+import net.p3pp3rf1y.sophisticateditemactions.network.RestockItemsMessage;
+import net.p3pp3rf1y.sophisticateditemactions.network.SyncItemTransfersMessage;
 
 import java.util.*;
 
@@ -47,7 +47,7 @@ public class ItemTransferHandler {
 		Map<ResourceLocation, List<Integer>> entities = getStorageEntitiesAround(player);
 
 		if (!storages.isEmpty() || !entities.isEmpty()) {
-			PacketDistributor.sendToServer(new DepositItemsPayload(minSlot, maxSlot, storages, entities, onlyMatching));
+			ItemActionsPacketHandler.INSTANCE.sendToServer(new DepositItemsMessage(minSlot, maxSlot, storages, entities, onlyMatching));
 		} else {
 			playError(player, ItemActionsTranslationHelper.INSTANCE.translStatusMessage("no_storage_in_range").setStyle(Style.EMPTY.withColor(0xFF5555)));
 		}
@@ -129,8 +129,8 @@ public class ItemTransferHandler {
 		}
 
 		Vec3 playerPos = player.getEyePosition().add(0, -0.1, 0);
-		PacketDistributor.sendToPlayer(serverPlayer, new SyncItemTransfersPayload(inserted, playerPos, true));
-		PacketDistributor.sendToPlayersTrackingEntity(serverPlayer, new SyncItemTransfersPayload(inserted, playerPos, true));
+		ItemActionsPacketHandler.INSTANCE.sendToClient(serverPlayer, new SyncItemTransfersMessage(inserted, playerPos, true));
+		ItemActionsPacketHandler.INSTANCE.sendToAllTracking(new SyncItemTransfersMessage(inserted, playerPos, true), serverPlayer);
 
 		showDepositMessage(player, minSlot, maxSlot, inserted, depositedFromSlots);
 	}
@@ -229,7 +229,7 @@ public class ItemTransferHandler {
 		Map<ResourceLocation, List<Integer>> entities = getStorageEntitiesAround(player);
 
 		if (!storages.isEmpty() || !entities.isEmpty()) {
-			PacketDistributor.sendToServer(new RestockItemsPayload(filter, minSlot, maxSlot, fillEmpty, storages, entities));
+			ItemActionsPacketHandler.INSTANCE.sendToServer(new RestockItemsMessage(filter, minSlot, maxSlot, fillEmpty, storages, entities));
 		} else {
 			playError(player, ItemActionsTranslationHelper.INSTANCE.translStatusMessage("no_storage_in_range").setStyle(Style.EMPTY.withColor(0xFF5555)));
 		}
@@ -262,7 +262,7 @@ public class ItemTransferHandler {
 		for (int playerInventorySlot = minSlot; playerInventorySlot < maxSlot; playerInventorySlot++) {
 			ItemStack playerInventoryStack = player.getInventory().getItem(playerInventorySlot);
 			if (fillEmpty && !filter.isEmpty()) {
-				if (playerInventoryStack.isEmpty() || ItemStack.isSameItemSameComponents(playerInventoryStack, filter)) {
+				if (playerInventoryStack.isEmpty() || ItemStack.isSameItemSameTags(playerInventoryStack, filter)) {
 					restockSlot(restockHandlers, filter, playerInventoryStack, transferredItems, restockedPlayerSlots, player, playerInventorySlot);
 				}
 			} else {
@@ -273,8 +273,8 @@ public class ItemTransferHandler {
 		}
 
 		Vec3 playerPos = player.getEyePosition().add(0, -0.3, 0);
-		PacketDistributor.sendToPlayer(serverPlayer, new SyncItemTransfersPayload(transferredItems, playerPos, false));
-		PacketDistributor.sendToPlayersTrackingEntity(serverPlayer, new SyncItemTransfersPayload(transferredItems, playerPos, false));
+		ItemActionsPacketHandler.INSTANCE.sendToClient(serverPlayer, new SyncItemTransfersMessage(transferredItems, playerPos, false));
+		ItemActionsPacketHandler.INSTANCE.sendToAllTracking(new SyncItemTransfersMessage(transferredItems, playerPos, false), serverPlayer);
 
 		Level level = player.level();
 		Component message;

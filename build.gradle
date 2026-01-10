@@ -1,11 +1,12 @@
 plugins {
-    id 'java-library'
     id 'idea'
-    id 'maven-publish'
-    id 'net.neoforged.moddev' version '1.0.14'
-    id "org.sonarqube" version "5.0.0.4638"
+    id "org.sonarqube" version "4.3.1.3277"
+    id "maven-publish"
+    id 'net.neoforged.gradle' version '[6.0.18,6.2)'
+    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
     id "net.darkhax.curseforgegradle" version "1.1.15"
     id "com.modrinth.minotaur" version "2.+"
+    id 'org.spongepowered.mixin' version '0.7.+'
 }
 
 idea {
@@ -28,7 +29,7 @@ group = mod_group_id
 repositories {
     mavenCentral()
     maven { url = "https://modmaven.dev/" }
-    maven { url "https://minecraft.curseforge.com/api/maven/"}
+    maven { url "https://minecraft.curseforge.com/api/maven/" }
     maven {
         url "https://www.cursemaven.com"
         content {
@@ -92,72 +93,53 @@ repositories {
     }
 }
 
-base {
-    archivesName = mod_id
-}
+group = mod_group_id
+version = "${project.minecraft_version}-${project.mod_version}.${getBuildNumber()}"
+archivesBaseName = mod_id
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '17'
 
-neoForge {
-    version = project.neo_version
-
-    parchment {
-        mappingsVersion = project.parchment_mappings_version
-        minecraftVersion = project.parchment_minecraft_version
-    }
-
+minecraft {
+    mappings channel: 'parchment', version: "$parchment_version"
+    copyIdeResources = true
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
     runs {
         configureEach {
-            systemProperty 'forge.logging.markers', 'REGISTRIES'
-            systemProperty 'forge.logging.console.level', 'debug'
-            systemProperty 'mixin.env.disableRefMap', 'true'
-        }
+            workingDirectory project.file("run/${it.name}")
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.console.level', 'debug'
+            property "mixin.env.disableRefMap", "true"
+            //property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
 
+            mods {
+                "${mod_id}" {
+                    source sourceSets.main
+                }
+                if (findProject(':SophisticatedCore') != null) {
+                    "sophisticatedcore" {
+                        source project(':SophisticatedCore').sourceSets.main
+                    }
+                }
+                if (findProject(':SophisticatedStorageInMotion') != null) {
+                    "sophisticatedstorageinmotion" {
+                        source project(':SophisticatedStorageInMotion').sourceSets.main
+                    }
+                }
+                if (findProject(':SophisticatedStorage') != null) {
+                    "sophisticatedstorage" {
+                        source project(':SophisticatedStorage').sourceSets.main
+                    }
+                }
+            }
+        }
         client {
-            client()
         }
-
-        client2 {
-            client()
-
-            programArguments.addAll '--username', 'Dev2'
-        }
-
         server {
-            server()
-            programArgument '--nogui'
         }
-
         data {
-            data()
-            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+            property 'fml.earlyprogresswindow', 'false'
+            args '--mod', 'sophisticateditemactions', '--all', '--output', file('src/generated/resources/')
         }
-    }
-
-    mods {
-        "${mod_id}" {
-            sourceSet(sourceSets.main)
-        }
-        if (findProject(':SophisticatedCore') != null) {
-            "sophisticatedcore" {
-                sourceSet(project(':SophisticatedCore').sourceSets.main)
-            }
-        }
-        if (findProject(':SophisticatedStorageInMotion') != null) {
-            "sophisticatedstorageinmotion" {
-                sourceSet(project(':SophisticatedStorageInMotion').sourceSets.main)
-            }
-        }
-        if (findProject(':SophisticatedStorage') != null) {
-            "sophisticatedstorage" {
-                sourceSet(project(':SophisticatedStorage').sourceSets.main)
-            }
-        }
-    }
-
-    unitTest {
-        enable()
-        testedMod = mods."${mod_id}"
     }
 }
 
@@ -165,81 +147,60 @@ sourceSets.main.resources {
     srcDir 'src/generated/resources'
 }
 
-configurations {
-    runtimeClasspath.extendsFrom localRuntime
-}
-
 dependencies {
-    compileOnly "mezz.jei:jei-${jei_mc_version}-api:${jei_version}"
-    localRuntime "mezz.jei:jei-${jei_mc_version}:${jei_version}"
-    compileOnly "dev.emi:emi-neoforge:${emi_version}:api"
-    localRuntime "dev.emi:emi-neoforge:${emi_version}"
-    compileOnly "me.shedaniel:RoughlyEnoughItems-api-neoforge:${rei_version}"
-    compileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin-neoforge:${rei_version}"
-    localRuntime "me.shedaniel:RoughlyEnoughItems-neoforge:${rei_version}"
-    localRuntime "me.shedaniel:RoughlyEnoughItems-default-plugin-neoforge:${rei_version}"
+    minecraft "net.neoforged:forge:${minecraft_version}-${neo_version}"
+
+    compileOnly fg.deobf("mezz.jei:jei-${jei_mc_version}:${jei_version}")
+    compileOnly fg.deobf("dev.emi:emi-forge:${emi_version}:api")
+    compileOnly fg.deobf("me.shedaniel:RoughlyEnoughItems-forge:${rei_version}")
 
     if (findProject(':SophisticatedCore') != null) {
-        dependencies.implementation project(':SophisticatedCore')
+        implementation project(':SophisticatedCore')
     } else {
-        dependencies.implementation("sophisticatedcore:sophisticatedcore:${sc_version}") {
+        implementation fg.deobf("sophisticatedcore:sophisticatedcore:${sc_version}") {
             transitive = false
         }
-        dependencies.testImplementation("sophisticatedcore:sophisticatedcore:${sc_version}") {
+        testImplementation fg.deobf("sophisticatedcore:sophisticatedcore:${sc_version}") {
             transitive = false
         }
     }
     if (findProject(':SophisticatedStorageInMotion') != null) {
-        dependencies.implementation project(':SophisticatedStorageInMotion')
+        implementation project(':SophisticatedStorageInMotion')
     } else {
-        dependencies.implementation("sophisticatedstorageinmotion:sophisticatedstorageinmotion:${ssim_version}") {
+        implementation fg.deobf("sophisticatedstorageinmotion:sophisticatedstorageinmotion:${ssim_version}") {
             transitive = false
         }
-        dependencies.testImplementation("sophisticatedstorageinmotion:sophisticatedstorageinmotion:${ssim_version}") {
+        testImplementation fg.deobf("sophisticatedstorageinmotion:sophisticatedstorageinmotion:${ssim_version}") {
             transitive = false
         }
     }
     if (findProject(':SophisticatedStorage') != null) {
-        dependencies.implementation project(':SophisticatedStorage')
+        implementation project(':SophisticatedStorage')
     } else {
-        dependencies.implementation("sophisticatedstorage:sophisticatedstorage:${ss_version}") {
+        implementation fg.deobf("sophisticatedstorage:sophisticatedstorage:${ss_version}") {
             transitive = false
         }
-        dependencies.testImplementation("sophisticatedstorage:sophisticatedstorage:${ss_version}") {
+        testImplementation fg.deobf("sophisticatedstorage:sophisticatedstorage:${ss_version}") {
             transitive = false
         }
     }
 }
 
-var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+tasks.withType(ProcessResources).configureEach {
     var replaceProperties = [
             minecraft_version   : minecraft_version, minecraft_version_range: minecraft_version_range,
             neo_version         : neo_version, neo_version_range: neo_version_range,
             loader_version_range: loader_version_range,
-            mod_id              : mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
-            mod_issue_tracker_url: mod_issue_tracker_url, mod_logo_file: mod_logo_file, mod_credits: mod_credits,
-            mod_authors         : mod_authors, mod_description: mod_description, mod_display_url: mod_display_url,
-            mod_full_version    : "${project.mod_version}.${getBuildNumber()}${getStable()}",
+            mod_id              : mod_id, mod_version: mod_version,
+            mod_full_version    : "${project.mod_version}.${getBuildNumber()}",
             jei_version_range   : jei_version_range,
-            ssim_version          :"[" + ssim_version.substring(ssim_version.indexOf("-") + 1, ssim_version.lastIndexOf(',')) + ",)"
+            sc_version          : sc_version.substring(sc_version.indexOf("-") + 1, sc_version.lastIndexOf(',')) + ".+",
+            ssim_version        : "[" + ssim_version.substring(ssim_version.indexOf("-") + 1, ssim_version.lastIndexOf(',')) + ",)"
     ]
     inputs.properties replaceProperties
 
-    expand replaceProperties
-    from "src/main/templates"
-    into "build/generated/sources/modMetadata"
-}
-
-// Include the output of "generateModMetadata" as an input directory for the build
-// this works with both building through Gradle and the IDE.
-sourceSets.main.resources.srcDir generateModMetadata
-// To avoid having to run "generateModMetadata" manually, make it run on every project reload
-neoForge.ideSyncTask generateModMetadata
-
-test {
-    useJUnitPlatform()
-    testLogging {
-        events "passed", "skipped", "failed"
+    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
+        expand replaceProperties + [project: project]
     }
 }
 
@@ -398,7 +359,7 @@ task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     apiToken = System.getenv("CURSEFORGE_TOKEN")
     def mainFile = upload(project.curseforge_id, file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"))
     mainFile.changelogType = 'markdown'
-    mainFile.changelog = {project.ext.changelog}
+    mainFile.changelog = { project.ext.changelog }
     mainFile.addModLoader('NeoForge')
     mainFile.releaseType = "${release_type}"
     "${release_versions}".split(',').each {
@@ -414,7 +375,7 @@ modrinth {
     projectId = "${modrinth_project_id}"
     versionType = "${release_type}"
     uploadFile = jar
-    gameVersions = "${release_versions}".split(',').collect {e -> e}
+    gameVersions = "${release_versions}".split(',').collect { e -> e }
     loaders = ["neoforge"]
     dependencies {
         required.project "sophisticated-core"

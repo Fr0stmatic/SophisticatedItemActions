@@ -10,10 +10,14 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.client.event.*;
-import net.neoforged.neoforge.client.settings.IKeyConflictContext;
-import net.neoforged.neoforge.common.NeoForge;
+import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.client.event.ScreenEvent;
+import net.minecraftforge.client.settings.IKeyConflictContext;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.p3pp3rf1y.sophisticateditemactions.client.gui.ItemActionsTranslationHelper;
 import net.p3pp3rf1y.sophisticateditemactions.client.render.EntityHighlightRenderer;
 import net.p3pp3rf1y.sophisticateditemactions.client.render.ItemFlightAnimator;
@@ -26,8 +30,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-import static net.neoforged.neoforge.client.settings.KeyConflictContext.GUI;
-import static net.neoforged.neoforge.client.settings.KeyConflictContext.IN_GAME;
+import static net.minecraftforge.client.settings.KeyConflictContext.GUI;
+import static net.minecraftforge.client.settings.KeyConflictContext.IN_GAME;
+
 
 public class ClientEventHandler {
 	private static final String KEYBIND_SOPHISTICATEDCORE_CATEGORY = "key.category.sophisticateditemactions.main";
@@ -46,7 +51,7 @@ public class ClientEventHandler {
 	public static void registerHandlers(IEventBus modBus) {
 		modBus.addListener(ClientEventHandler::registerKeyMappings);
 
-		IEventBus eventBus = NeoForge.EVENT_BUS;
+		IEventBus eventBus = MinecraftForge.EVENT_BUS;
 		eventBus.addListener(ClientEventHandler::handleKeyInput);
 		eventBus.addListener(ClientEventHandler::onPostClientTick);
 		eventBus.addListener(ClientEventHandler::handleGuiKeyPress);
@@ -58,9 +63,8 @@ public class ClientEventHandler {
 		if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES) {
 			return;
 		}
-		float partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(false);
-		ItemFlightAnimator.render(event.getPoseStack(), partialTick, event.getCamera().getPosition());
-		EntityHighlightRenderer.render(event.getPoseStack(), partialTick, event.getCamera().getPosition());
+		ItemFlightAnimator.render(event.getPoseStack(), event.getPartialTick(), event.getCamera().getPosition());
+		EntityHighlightRenderer.render(event.getPoseStack(), event.getPartialTick(), event.getCamera().getPosition());
 	}
 
 	private static void registerKeyMappings(RegisterKeyMappingsEvent event) {
@@ -85,7 +89,11 @@ public class ClientEventHandler {
 		}
 	}
 
-	public static void onPostClientTick(ClientTickEvent.Post event) {
+	public static void onPostClientTick(TickEvent.ClientTickEvent event) {
+		if (event.phase != TickEvent.Phase.END) {
+			return;
+		}
+
 		if (ITEM_HIGHLIGHT_KEYBIND.consumeClick()) {
 			tryHighlightItem();
 		}

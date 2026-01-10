@@ -7,9 +7,9 @@ import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.client.event.ScreenEvent;
-import net.neoforged.neoforge.common.NeoForge;
+import net.minecraftforge.client.event.ScreenEvent;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.p3pp3rf1y.sophisticateditemactions.client.ClientEventHandler;
 import net.p3pp3rf1y.sophisticateditemactions.common.HighlightHandler;
 
@@ -25,7 +25,7 @@ public class JeiClientCompat {
 	}
 
 	public static void init() {
-		IEventBus eventBus = NeoForge.EVENT_BUS;
+		IEventBus eventBus = MinecraftForge.EVENT_BUS;
 		eventBus.addListener(JeiClientCompat::handleGuiKeyPress);
 		eventBus.addListener(JeiClientCompat::handleGuiMouseKeyPress);
 		ClientEventHandler.registerHoveredStackSupplier(() -> getStack().orElse(ItemStack.EMPTY));
