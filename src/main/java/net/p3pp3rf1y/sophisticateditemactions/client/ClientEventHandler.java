@@ -155,7 +155,7 @@ public class ClientEventHandler {
 				}
 			} else {
 				filter = player.getMainHandItem();
-				slot = player.getInventory().selected;
+				slot = player.getInventory().getSelectedSlot();
 			}
 		} else {
 			slot = player.getInventory().getFreeSlot();
@@ -214,7 +214,7 @@ public class ClientEventHandler {
 	private static void tryDepositItem(Player player, boolean onlyMatching) {
 		ItemStack item = player.getMainHandItem();
 		if (!item.isEmpty()) {
-			ItemTransferHandler.depositItem(player, player.getInventory().selected, onlyMatching);
+			ItemTransferHandler.depositItem(player, player.getInventory().getSelectedSlot(), onlyMatching);
 		}
 	}
 
