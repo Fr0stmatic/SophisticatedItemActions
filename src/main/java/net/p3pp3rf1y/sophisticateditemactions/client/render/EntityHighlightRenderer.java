@@ -3,6 +3,8 @@ package net.p3pp3rf1y.sophisticateditemactions.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
@@ -40,12 +42,13 @@ public class EntityHighlightRenderer {
 		}
 		MultiBufferSource.BufferSource buffer = mc.renderBuffers().bufferSource();
 
+		SubmitNodeStorage submitNodeStorage = mc.gameRenderer.getSubmitNodeStorage();
 		highlightedStackEntityIds.forEach((color, highlightedEntities) -> {
-			highlightedEntities.forEach(he -> renderHighlightedEntity(poseStack, partialTick, cameraPos, he, mc, buffer, color));
+			highlightedEntities.forEach(he -> submitHighlightedEntity(submitNodeStorage, poseStack, partialTick, cameraPos, he, mc, buffer, color));
 		});
 	}
 
-	private static void renderHighlightedEntity(PoseStack poseStack, float partialTick, Vec3 cameraPos, int entityId, Minecraft mc, MultiBufferSource.BufferSource buffer, int color) {
+	private static void submitHighlightedEntity(SubmitNodeCollector submitNodeCollector, PoseStack poseStack, float partialTick, Vec3 cameraPos, int entityId, Minecraft mc, MultiBufferSource.BufferSource buffer, int color) {
 		Entity entity = mc.level.getEntity(entityId);
 		if (entity == null) {
 			return;
@@ -62,7 +65,7 @@ public class EntityHighlightRenderer {
 		float scale = 1 + Easing.EASE_IN_OUT_CUBIC.ease((float) BlockHighlightRenderer.tri01(mc.level.getGameTime(), 15, partialTick)) * 0.05f;
 		poseStack.scale(scale, scale, scale);
 		poseStack.translate(0, -halfH, 0);
-		BlockHighlightRenderHelper.renderThickEdges(poseStack, buffer, color, VoxelOutliner.edgesFromAABB(boundingBox), entity.getX(), entity.getY(), entity.getZ());
+		BlockHighlightRenderHelper.submitThickEdges(submitNodeCollector, poseStack, color, VoxelOutliner.edgesFromAABB(boundingBox), entity.getX(), entity.getY(), entity.getZ());
 		poseStack.popPose();
 	}
 }

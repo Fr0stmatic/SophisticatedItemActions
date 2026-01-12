@@ -5,5 +5,5 @@ import net.minecraft.world.phys.Vec3;
 
 public interface IRestockHandler {
 	Vec3 getPosition();
-	ItemStack extractItem(ItemStack stack);
+	int extractItem(ItemStack stack);
 }

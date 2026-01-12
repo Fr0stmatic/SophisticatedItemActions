@@ -6,6 +6,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ISlotTracker;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
+import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticateditemactions.SophisticatedItemActions;
 import net.p3pp3rf1y.sophisticateditemactions.common.IDepositHandler;
 import net.p3pp3rf1y.sophisticateditemactions.common.IEntityItemActionHandler;
@@ -66,8 +67,8 @@ public class MovingStorageItemActionHandler implements IEntityItemActionHandler 
 			}
 
 			@Override
-			public ItemStack insertItem(ItemStack stack) {
-				return movingStorage.getStorageHolder().getStorageWrapper().getInventoryForInputOutput().insertItem(stack, false);
+			public int insertItem(ItemStack stack) {
+				return InventoryHelper.insert(movingStorage.getStorageHolder().getStorageWrapper().getInventoryForInputOutput(), stack);
 			}
 		});
 	}
@@ -84,8 +85,8 @@ public class MovingStorageItemActionHandler implements IEntityItemActionHandler 
 			}
 
 			@Override
-			public ItemStack extractItem(ItemStack stack) {
-				return movingStorage.getStorageHolder().getStorageWrapper().getInventoryForInputOutput().extractItem(stack, false);
+			public int extractItem(ItemStack stack) {
+				return InventoryHelper.extract(movingStorage.getStorageHolder().getStorageWrapper().getInventoryForInputOutput(), stack);
 			}
 		});
 	}

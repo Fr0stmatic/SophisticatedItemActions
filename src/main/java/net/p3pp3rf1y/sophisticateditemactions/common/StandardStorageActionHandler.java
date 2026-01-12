@@ -13,7 +13,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticateditemactions.SophisticatedItemActions;
@@ -33,17 +34,17 @@ public class StandardStorageActionHandler implements IBlockItemActionHandler, IE
 
 	@Override
 	public boolean canActOn(Entity entity) {
-		return entity.getCapability(Capabilities.ItemHandler.ENTITY, null) != null;
+		return entity.getCapability(Capabilities.Item.ENTITY, null) != null;
 	}
 
 	@Override
 	public ItemMatchResult getItemMatch(ItemStackKey stackKey, Entity entity) {
-		return getItemMatch(stackKey, entity.getCapability(Capabilities.ItemHandler.ENTITY, null));
+		return getItemMatch(stackKey, entity.getCapability(Capabilities.Item.ENTITY, null));
 	}
 
 	@Override
 	public Optional<IDepositHandler> getDepositHandler(Entity entity) {
-		IItemHandler cap = entity.getCapability(Capabilities.ItemHandler.ENTITY, null);
+		ResourceHandler<ItemResource> cap = entity.getCapability(Capabilities.Item.ENTITY, null);
 		if (cap == null) {
 			return Optional.empty();
 		}
@@ -60,15 +61,15 @@ public class StandardStorageActionHandler implements IBlockItemActionHandler, IE
 			}
 
 			@Override
-			public ItemStack insertItem(ItemStack stack) {
-				return InventoryHelper.insertIntoInventoryMatchingFirst(stack, cap, false);
+			public int insertItem(ItemStack stack) {
+				return InventoryHelper.insertMatchingFirst(cap, stack);
 			}
 		});
 	}
 
 	@Override
 	public Optional<IRestockHandler> getRestockHandler(Entity entity) {
-		IItemHandler cap = entity.getCapability(Capabilities.ItemHandler.ENTITY, null);
+		ResourceHandler<ItemResource> cap = entity.getCapability(Capabilities.Item.ENTITY, null);
 		if (cap == null) {
 			return Optional.empty();
 		}
@@ -80,24 +81,24 @@ public class StandardStorageActionHandler implements IBlockItemActionHandler, IE
 			}
 
 			@Override
-			public ItemStack extractItem(ItemStack stack) {
-				return InventoryHelper.extractFromInventory(stack, cap, false);
+			public int extractItem(ItemStack stack) {
+				return InventoryHelper.extract(cap, stack);
 			}
 		});
 	}
 
-	private static ItemMatchResult getItemMatch(ItemStackKey stackKey, @Nullable IItemHandler cap) {
+	private static ItemMatchResult getItemMatch(ItemStackKey stackKey, @Nullable ResourceHandler<ItemResource> cap) {
 		if (cap == null) {
 			return ItemMatchResult.NO_MATCH;
 		}
 		AtomicReference<ItemMatchResult> highlightResult = new AtomicReference<>(ItemMatchResult.NO_MATCH);
-		InventoryHelper.iterate(cap, (slot, stack) -> {
-			if (stack.isEmpty()) {
+		InventoryHelper.iterate(cap, (slot, resource, amount) -> {
+			if (resource.isEmpty()) {
 				return;
 			}
-			if (stackKey.matches(stack)) {
+			if (resource.matches(stackKey.stack())) {
 				highlightResult.set(ItemMatchResult.MATCHING_STACK);
-			} else if (stackKey.stack().getItem() == stack.getItem()) {
+			} else if (stackKey.stack().getItem() == resource.getItem()) {
 				highlightResult.set(ItemMatchResult.MATCHING_ITEM);
 			}
 		}, () -> highlightResult.get() == ItemMatchResult.MATCHING_STACK);
@@ -106,7 +107,7 @@ public class StandardStorageActionHandler implements IBlockItemActionHandler, IE
 
 	@Override
 	public boolean canActOn(Level level, BlockPos pos, BlockEntity blockEntity) {
-		return level.getCapability(Capabilities.ItemHandler.BLOCK, pos, null) != null;
+		return level.getCapability(Capabilities.Item.BLOCK, pos, null) != null;
 	}
 
 	@Override
@@ -115,14 +116,14 @@ public class StandardStorageActionHandler implements IBlockItemActionHandler, IE
 		if (state.getBlock() == Blocks.CHEST && state.getValue(ChestBlock.TYPE) == ChestType.RIGHT) {
 			return ItemMatchResult.NO_MATCH;
 		}
-		return getItemMatch(stackKey, player.level().getCapability(Capabilities.ItemHandler.BLOCK, pos, null));
+		return getItemMatch(stackKey, player.level().getCapability(Capabilities.Item.BLOCK, pos, null));
 	}
 
 	@Override
 	public Optional<IDepositHandler> getDepositHandler(ServerPlayer player, BlockPos pos) {
 		Level level = player.level();
-		IItemHandler itemHandler = level.getCapability(Capabilities.ItemHandler.BLOCK, pos, null);
-		if (itemHandler == null) {
+		ResourceHandler<ItemResource> cap = level.getCapability(Capabilities.Item.BLOCK, pos, null);
+		if (cap == null) {
 			return Optional.empty();
 		}
 		Vec3 center = Vec3.atCenterOf(pos);
@@ -134,19 +135,19 @@ public class StandardStorageActionHandler implements IBlockItemActionHandler, IE
 
 			@Override
 			public ItemMatchResult getItemMatch(ItemStackKey stackKey) {
-				return StandardStorageActionHandler.getItemMatch(stackKey, itemHandler);
+				return StandardStorageActionHandler.getItemMatch(stackKey, cap);
 			}
 
 			@Override
-			public ItemStack insertItem(ItemStack stack) {
-				return InventoryHelper.insertIntoInventoryMatchingFirst(stack, itemHandler, false);
+			public int insertItem(ItemStack stack) {
+				return InventoryHelper.insertMatchingFirst(cap, stack);
 			}
 		});
 	}
 
 	@Override
 	public Optional<IRestockHandler> getRestockHandler(ServerPlayer player, BlockPos pos) {
-		IItemHandler itemHandler = player.level().getCapability(Capabilities.ItemHandler.BLOCK, pos, null);
+		ResourceHandler<ItemResource> itemHandler = player.level().getCapability(Capabilities.Item.BLOCK, pos, null);
 		if (itemHandler == null) {
 			return Optional.empty();
 		}
@@ -157,8 +158,8 @@ public class StandardStorageActionHandler implements IBlockItemActionHandler, IE
 			}
 
 			@Override
-			public ItemStack extractItem(ItemStack stack) {
-				return InventoryHelper.extractFromInventory(stack, itemHandler, false);
+			public int extractItem(ItemStack stack) {
+				return InventoryHelper.extract(itemHandler, stack);
 			}
 		});
 	}

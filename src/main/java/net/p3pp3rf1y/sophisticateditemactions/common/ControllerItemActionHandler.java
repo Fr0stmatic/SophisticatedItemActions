@@ -5,6 +5,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.p3pp3rf1y.sophisticatedcore.controller.ControllerBlockEntityBase;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
+import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticateditemactions.SophisticatedItemActions;
 
 public class ControllerItemActionHandler implements IBlockEntityItemActionHandler<ControllerBlockEntityBase> {
@@ -31,8 +32,8 @@ public class ControllerItemActionHandler implements IBlockEntityItemActionHandle
 			}
 
 			@Override
-			public ItemStack insertItem(ItemStack stack) {
-				return controller.insertItem(stack, false);
+			public int insertItem(ItemStack stack) {
+				return InventoryHelper.insert(controller, stack);
 			}
 		};
 	}
@@ -46,8 +47,8 @@ public class ControllerItemActionHandler implements IBlockEntityItemActionHandle
 			}
 
 			@Override
-			public ItemStack extractItem(ItemStack stack) {
-				return controller.extractItem(stack, false);
+			public int extractItem(ItemStack stack) {
+				return InventoryHelper.extract(controller, stack);
 			}
 		};
 	}

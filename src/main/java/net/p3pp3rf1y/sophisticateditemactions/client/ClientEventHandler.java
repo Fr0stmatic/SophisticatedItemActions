@@ -14,6 +14,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.client.settings.IKeyConflictContext;
 import net.neoforged.neoforge.common.NeoForge;
+import net.p3pp3rf1y.sophisticateditemactions.SophisticatedItemActions;
 import net.p3pp3rf1y.sophisticateditemactions.client.gui.ItemActionsTranslationHelper;
 import net.p3pp3rf1y.sophisticateditemactions.client.render.EntityHighlightRenderer;
 import net.p3pp3rf1y.sophisticateditemactions.client.render.ItemFlightAnimator;
@@ -30,13 +31,14 @@ import static net.neoforged.neoforge.client.settings.KeyConflictContext.GUI;
 import static net.neoforged.neoforge.client.settings.KeyConflictContext.IN_GAME;
 
 public class ClientEventHandler {
-	private static final String KEYBIND_SOPHISTICATEDCORE_CATEGORY = "key.category.sophisticateditemactions.main";
+	private static final KeyMapping.Category KEYBIND_SOPHISTICATEDCORE_CATEGORY = new KeyMapping.Category(SophisticatedItemActions.getRL("main"));
 	public static final KeyMapping ITEM_HIGHLIGHT_KEYBIND = new KeyMapping(ItemActionsTranslationHelper.INSTANCE.translKeybind("item_highlight"),
 			ClientEventHandler.ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_SEMICOLON), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
 	public static final KeyMapping ITEM_DEPOSIT_KEYBIND = new KeyMapping(ItemActionsTranslationHelper.INSTANCE.translKeybind("deposit_item"),
 			ClientEventHandler.ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_APOSTROPHE), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
 	public static final KeyMapping ITEM_RESTOCK_KEYBIND = new KeyMapping(ItemActionsTranslationHelper.INSTANCE.translKeybind("restock_item"),
 			ClientEventHandler.ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_BACKSLASH), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
+
 	private static final List<Supplier<ItemStack>> HOVERED_STACK_SUPPLIERS = new ArrayList<>();
 
 	public static void registerHoveredStackSupplier(Supplier<ItemStack> stackSupplier) {
@@ -54,20 +56,21 @@ public class ClientEventHandler {
 		eventBus.addListener(ClientEventHandler::renderLevelStage);
 	}
 
-	private static void renderLevelStage(RenderLevelStageEvent.AfterBlockEntities event) {
-		float partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(false);
-		ItemFlightAnimator.render(event.getPoseStack(), partialTick, event.getCamera().getPosition());
-		EntityHighlightRenderer.render(event.getPoseStack(), partialTick, event.getCamera().getPosition());
+	private static void renderLevelStage(RenderLevelStageEvent.AfterEntities event) {
+		float partialTick = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(false);
+		ItemFlightAnimator.submitItems(event.getPoseStack(), partialTick, event.getLevelRenderState().cameraRenderState.pos);
+		EntityHighlightRenderer.render(event.getPoseStack(), partialTick, event.getLevelRenderState().cameraRenderState.pos);
 	}
 
 	private static void registerKeyMappings(RegisterKeyMappingsEvent event) {
+		event.registerCategory(KEYBIND_SOPHISTICATEDCORE_CATEGORY);
 		event.register(ITEM_HIGHLIGHT_KEYBIND);
 		event.register(ITEM_DEPOSIT_KEYBIND);
 		event.register(ITEM_RESTOCK_KEYBIND);
 	}
 
 	public static void handleGuiKeyPress(ScreenEvent.KeyPressed.Pre event) {
-		InputConstants.Key key = InputConstants.getKey(event.getKeyCode(), event.getScanCode());
+		InputConstants.Key key = InputConstants.getKey(event.getKeyEvent());
 		if (ITEM_HIGHLIGHT_KEYBIND.isActiveAndMatches(key) && event.getScreen() instanceof AbstractContainerScreen<?> screen && tryHighlightItem(screen.getSlotUnderMouse())) {
 			screen.onClose();
 			event.setCanceled(true);

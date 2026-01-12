@@ -7,5 +7,5 @@ import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 public interface IDepositHandler {
 	Vec3 getPosition();
 	ItemMatchResult getItemMatch(ItemStackKey stackKey);
-	ItemStack insertItem(ItemStack stack);
+	int insertItem(ItemStack stack);
 }

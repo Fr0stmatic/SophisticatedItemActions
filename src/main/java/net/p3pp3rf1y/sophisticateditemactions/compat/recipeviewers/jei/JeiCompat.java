@@ -8,7 +8,7 @@ import net.p3pp3rf1y.sophisticatedcore.compat.ICompat;
 public class JeiCompat implements ICompat {
 	@Override
 	public void init(IEventBus modBus) {
-		if (FMLEnvironment.dist == Dist.CLIENT) {
+		if (FMLEnvironment.getDist() == Dist.CLIENT) {
 			JeiClientCompat.init();
 		}
 	}

@@ -8,6 +8,7 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.controller.IControllableStorage;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ISlotTracker;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
+import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
 public class ControllableStorageItemActionHandler implements IBlockEntityItemActionHandler<IControllableStorage> {
 	public static final ControllableStorageItemActionHandler INSTANCE = new ControllableStorageItemActionHandler();
@@ -47,8 +48,8 @@ public class ControllableStorageItemActionHandler implements IBlockEntityItemAct
 			}
 
 			@Override
-			public ItemStack extractItem(ItemStack stack) {
-				return storage.getStorageWrapper().getInventoryForInputOutput().extractItem(stack, false);
+			public int extractItem(ItemStack stack) {
+				return InventoryHelper.extract(storage.getStorageWrapper().getInventoryForInputOutput(), stack);
 			}
 		};
 	}
@@ -74,8 +75,8 @@ public class ControllableStorageItemActionHandler implements IBlockEntityItemAct
 			}
 
 			@Override
-			public ItemStack insertItem(ItemStack stack) {
-				return storage.getStorageWrapper().getInventoryForInputOutput().insertItem(stack, false);
+			public int insertItem(ItemStack stack) {
+				return InventoryHelper.insert(storage.getStorageWrapper().getInventoryForInputOutput(), stack);
 			}
 		};
 	}

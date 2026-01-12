@@ -87,7 +87,7 @@ public class ItemTransferHandler {
 
 		List<IDepositHandler> handlers = collectAndSortDepositHandlers(player, storagePositions, entities, serverPlayer);
 
-		Map<Vec3, List<ItemStack>> inserted = new HashMap<>();
+		Map<Vec3, List<ItemStack>> deposited = new HashMap<>();
 		Set<Integer> depositedFromSlots = new HashSet<>();
 		for (int slot = minSlot; slot < maxSlot; slot++) {
 			ItemStack stack = player.getInventory().getItem(slot);
@@ -102,7 +102,10 @@ public class ItemTransferHandler {
 			for (IDepositHandler depositHandler : handlers) {
 				ItemMatchResult match = depositHandler.getItemMatch(stackKey);
 				if (match == ItemMatchResult.MATCHING_STACK) {
-					stack = depositToHandlerAndLog(depositHandler, stack, player, slot, inserted, depositedFromSlots);
+					int inserted = depositToHandlerAndLog(depositHandler, stack, player, slot, deposited, depositedFromSlots);
+					if (inserted > 0) {
+						stack = stack.copyWithCount(stack.getCount() - inserted);
+					}
 					if (stack.isEmpty()) {
 						break;
 					}
@@ -119,7 +122,10 @@ public class ItemTransferHandler {
 
 			if (!stack.isEmpty()) {
 				for (IDepositHandler depositHandler : followUpHandlers) {
-					stack = depositToHandlerAndLog(depositHandler, stack, player, slot, inserted, depositedFromSlots);
+					int inserted = depositToHandlerAndLog(depositHandler, stack, player, slot, deposited, depositedFromSlots);
+					if (inserted > 0) {
+						stack = stack.copyWithCount(stack.getCount() - inserted);
+					}
 					if (stack.isEmpty()) {
 						break;
 					}
@@ -128,10 +134,10 @@ public class ItemTransferHandler {
 		}
 
 		Vec3 playerPos = player.getEyePosition().add(0, -0.1, 0);
-		PacketDistributor.sendToPlayer(serverPlayer, new SyncItemTransfersPayload(inserted, playerPos, true));
-		PacketDistributor.sendToPlayersTrackingEntity(serverPlayer, new SyncItemTransfersPayload(inserted, playerPos, true));
+		PacketDistributor.sendToPlayer(serverPlayer, new SyncItemTransfersPayload(deposited, playerPos, true));
+		PacketDistributor.sendToPlayersTrackingEntity(serverPlayer, new SyncItemTransfersPayload(deposited, playerPos, true));
 
-		showDepositMessage(player, minSlot, maxSlot, inserted, depositedFromSlots);
+		showDepositMessage(player, minSlot, maxSlot, deposited, depositedFromSlots);
 	}
 
 	private static void showDepositMessage(Player player, int minSlot, int maxSlot, Map<Vec3, List<ItemStack>> inserted, Set<Integer> depositedFromSlots) {
@@ -188,15 +194,16 @@ public class ItemTransferHandler {
 		return handlers;
 	}
 
-	private static ItemStack depositToHandlerAndLog(IDepositHandler depositHandler, ItemStack stack, Player player, int slot, Map<Vec3, List<ItemStack>> inserted, Set<Integer> depositedFromSlots) {
-		ItemStack remaining = depositHandler.insertItem(stack);
-		if (remaining.getCount() < stack.getCount()) {
-			inserted.computeIfAbsent(depositHandler.getPosition(), k -> new ArrayList<>()).add(stack.copyWithCount(stack.getCount() - remaining.getCount()));
-			player.getInventory().setItem(slot, remaining);
+	private static int depositToHandlerAndLog(IDepositHandler depositHandler, ItemStack stack, Player player, int slot, Map<Vec3, List<ItemStack>> deposited, Set<Integer> depositedFromSlots) {
+		int inserted = depositHandler.insertItem(stack);
+		if (inserted > 0) {
+			deposited.computeIfAbsent(depositHandler.getPosition(), k -> new ArrayList<>()).add(stack.copyWithCount(inserted));
+			ItemStack remainingStack = stack.getCount() == inserted ? ItemStack.EMPTY : stack.copyWithCount(stack.getCount() - inserted);
+			player.getInventory().setItem(slot, remainingStack);
 			depositedFromSlots.add(slot);
-			return remaining;
+			return inserted;
 		}
-		return stack;
+		return 0;
 	}
 
 	public static void restockMultipleItems(Player player, ItemStack filter, boolean mainInventory, boolean hotbar, boolean fillEmpty) {
@@ -304,18 +311,19 @@ public class ItemTransferHandler {
 		int totalExtracted = 0;
 		int originalCount = stackToExtract.getCount();
 		for (IRestockHandler handler : restockHandlers) {
-			ItemStack extracted = handler.extractItem(stackToExtract);
-			if (!extracted.isEmpty()) {
-				restocked.computeIfAbsent(handler.getPosition(), k -> new ArrayList<>()).add(extracted.copy());
+			int extracted = handler.extractItem(stackToExtract);
+			if (extracted > 0) {
+				ItemStack extractedStack = stackToExtract.copyWithCount(extracted);
+				restocked.computeIfAbsent(handler.getPosition(), k -> new ArrayList<>()).add(extractedStack.copy());
 				if (playerInventoryStack.isEmpty()) {
-					playerInventoryStack = extracted.copy();
+					playerInventoryStack = extractedStack;
 				} else {
-					playerInventoryStack.grow(extracted.getCount());
+					playerInventoryStack.grow(extracted);
 				}
 				player.getInventory().setItem(playerInventorySlot, playerInventoryStack);
 				restockedPlayerSlots.add(playerInventorySlot);
-				totalExtracted += extracted.getCount();
-				stackToExtract = stackToExtract.copyWithCount(stackToExtract.getCount() - extracted.getCount());
+				totalExtracted += extracted;
+				stackToExtract = stackToExtract.copyWithCount(stackToExtract.getCount() - extracted);
 			}
 			if (totalExtracted >= originalCount) {
 				break;
