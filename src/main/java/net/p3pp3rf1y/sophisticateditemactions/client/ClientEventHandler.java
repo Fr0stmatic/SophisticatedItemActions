@@ -54,10 +54,7 @@ public class ClientEventHandler {
 		eventBus.addListener(ClientEventHandler::renderLevelStage);
 	}
 
-	private static void renderLevelStage(RenderLevelStageEvent event) {
-		if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES) {
-			return;
-		}
+	private static void renderLevelStage(RenderLevelStageEvent.AfterBlockEntities event) {
 		float partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(false);
 		ItemFlightAnimator.render(event.getPoseStack(), partialTick, event.getCamera().getPosition());
 		EntityHighlightRenderer.render(event.getPoseStack(), partialTick, event.getCamera().getPosition());

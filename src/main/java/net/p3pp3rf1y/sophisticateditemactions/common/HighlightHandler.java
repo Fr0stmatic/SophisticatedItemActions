@@ -12,6 +12,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.network.SyncBlockHighlightsPayload;
@@ -31,6 +32,7 @@ public class HighlightHandler {
 	public static final int MATCHING_STACK_HIGHLIGHT_COLOR = 0x4CAF50;
 	public static final int MATCHING_ITEM_HIGHLIGHT_COLOR = 0x42A5F5;
 	private static final int HIGHLIGHT_RANGE = 32;
+
 	public static void highlightItem(Player player, ItemStack stack) {
 		Map<ResourceLocation, List<BlockPos>> positions = new HashMap<>();
 
@@ -48,7 +50,7 @@ public class HighlightHandler {
 								.ifPresent(id -> entities.computeIfAbsent(id, k -> new ArrayList<>()).add(e.getId()))
 				);
 		if (!positions.isEmpty() || !entities.isEmpty()) {
-			PacketDistributor.sendToServer(new RequestItemHighlightsPayload(stack, positions, entities));
+			ClientPacketDistributor.sendToServer(new RequestItemHighlightsPayload(stack, positions, entities));
 		} else {
 			player.displayClientMessage(ItemActionsTranslationHelper.INSTANCE.translStatusMessage("no_storage_in_range").setStyle(Style.EMPTY.withColor(0xFF5555)), true);
 			player.playSound(SoundEvents.NOTE_BLOCK_BASS.value(), 1, 0.45f + RandHelper.getRandomMinusOneToOne(player.level().random) * 0.1F);
