@@ -4,7 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -34,7 +34,7 @@ public class HighlightHandler {
 	private static final int HIGHLIGHT_RANGE = 32;
 
 	public static void highlightItem(Player player, ItemStack stack) {
-		Map<ResourceLocation, List<BlockPos>> positions = new HashMap<>();
+		Map<Identifier, List<BlockPos>> positions = new HashMap<>();
 
 		WorldHelper.getBlockEntitiesInRange(player.level(), player.blockPosition(), HIGHLIGHT_RANGE)
 				.forEach(be ->
@@ -42,7 +42,7 @@ public class HighlightHandler {
 								.ifPresent(id -> positions.computeIfAbsent(id, k -> new ArrayList<>()).add(be.getBlockPos()))
 				);
 
-		Map<ResourceLocation, List<Integer>> entities = new HashMap<>();
+		Map<Identifier, List<Integer>> entities = new HashMap<>();
 		player.level().getEntities(player, player.getBoundingBox().inflate(HIGHLIGHT_RANGE),
 						e -> e.distanceTo(player) <= HIGHLIGHT_RANGE)
 				.forEach(e ->
@@ -57,7 +57,7 @@ public class HighlightHandler {
 		}
 	}
 
-	public static void handleHighlight(Player player, ItemStackKey stackKey, Map<ResourceLocation, List<BlockPos>> storagePositions, Map<ResourceLocation, List<Integer>> entities) {
+	public static void handleHighlight(Player player, ItemStackKey stackKey, Map<Identifier, List<BlockPos>> storagePositions, Map<Identifier, List<Integer>> entities) {
 		AtomicInteger stackMatchNumber = new AtomicInteger(0);
 		AtomicInteger itemMatchNumber = new AtomicInteger(0);
 
@@ -122,7 +122,7 @@ public class HighlightHandler {
 		Component message = null;
 		if (stackMatchNumber.get() == 0 && itemMatchNumber.get() == 0) {
 			message = ItemActionsTranslationHelper.INSTANCE.translStatusMessage("no_matching_items_found");
-			player.playNotifySound(SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
+			level.playSound(null, player, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
 		} else {
 			if (stackMatchNumber.get() > 0) {
 				message = ItemActionsTranslationHelper.INSTANCE.translStatusMessage("matching_stacks_found", Component.literal(String.valueOf(stackMatchNumber.get())).withColor(0x4CAF50));
@@ -135,7 +135,7 @@ public class HighlightHandler {
 					message = itemMessage;
 				}
 			}
-			player.playNotifySound(SoundEvents.NOTE_BLOCK_CHIME.value(), SoundSource.PLAYERS, 1, 0.95f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
+			level.playSound(null, player, SoundEvents.NOTE_BLOCK_CHIME.value(), SoundSource.PLAYERS, 1, 0.95f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
 		}
 
 		player.displayClientMessage(message, true);

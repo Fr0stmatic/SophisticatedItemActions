@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticateditemactions.common;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -10,7 +10,7 @@ import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import java.util.Optional;
 
 public interface IBlockItemActionHandler {
-	ResourceLocation id();
+	Identifier id();
 
 	default boolean handlesAction(Action action) {
 		return true;

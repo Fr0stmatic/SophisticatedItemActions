@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticateditemactions.common;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -14,8 +14,8 @@ public class ItemActionHandlerRegistry {
 	private ItemActionHandlerRegistry() {
 	}
 
-	private static final Map<ResourceLocation, IBlockItemActionHandler> blockHandlersRegistry = new LinkedHashMap<>();
-	private static final Map<ResourceLocation, IEntityItemActionHandler> entityHandlersRegistry = new LinkedHashMap<>();
+	private static final Map<Identifier, IBlockItemActionHandler> blockHandlersRegistry = new LinkedHashMap<>();
+	private static final Map<Identifier, IEntityItemActionHandler> entityHandlersRegistry = new LinkedHashMap<>();
 
 	static {
 		register(ControllerItemActionHandler.INSTANCE);
@@ -26,7 +26,7 @@ public class ItemActionHandlerRegistry {
 		blockHandlersRegistry.put(handler.id(), handler);
 	}
 
-	public static Optional<IBlockItemActionHandler> getBlockHandler(ResourceLocation id) {
+	public static Optional<IBlockItemActionHandler> getBlockHandler(Identifier id) {
 		if (StandardStorageActionHandler.INSTANCE.id().equals(id)) {
 			return Optional.of(StandardStorageActionHandler.INSTANCE);
 		}
@@ -34,7 +34,7 @@ public class ItemActionHandlerRegistry {
 		return Optional.ofNullable(blockHandlersRegistry.get(id));
 	}
 
-	public static Optional<ResourceLocation> getBlockHandlerIdFor(Level level, BlockPos pos, BlockEntity blockEntity, IBlockItemActionHandler.Action action) {
+	public static Optional<Identifier> getBlockHandlerIdFor(Level level, BlockPos pos, BlockEntity blockEntity, IBlockItemActionHandler.Action action) {
 		return getBlockHandlerFor(level, pos, blockEntity, action).map(IBlockItemActionHandler::id);
 	}
 
@@ -57,7 +57,7 @@ public class ItemActionHandlerRegistry {
 		entityHandlersRegistry.put(handler.id(), handler);
 	}
 
-	public static Optional<IEntityItemActionHandler> getEntityHandler(ResourceLocation id) {
+	public static Optional<IEntityItemActionHandler> getEntityHandler(Identifier id) {
 		if (StandardStorageActionHandler.INSTANCE.id().equals(id)) {
 			return Optional.of(StandardStorageActionHandler.INSTANCE);
 		}
@@ -65,7 +65,7 @@ public class ItemActionHandlerRegistry {
 		return Optional.ofNullable(entityHandlersRegistry.get(id));
 	}
 
-	public static Optional<ResourceLocation> getEntityHandlerIdFor(Entity entity) {
+	public static Optional<Identifier> getEntityHandlerIdFor(Entity entity) {
 		for (IEntityItemActionHandler h : entityHandlersRegistry.values()) {
 			if (h.canActOn(entity)) {
 				return Optional.of(h.id());

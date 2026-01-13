@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticateditemactions.common;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
@@ -12,7 +12,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
 public class ControllableStorageItemActionHandler implements IBlockEntityItemActionHandler<IControllableStorage> {
 	public static final ControllableStorageItemActionHandler INSTANCE = new ControllableStorageItemActionHandler();
-	public static final ResourceLocation ID = SophisticatedCore.getRL("controllable_storage");
+	public static final Identifier ID = SophisticatedCore.getIdentifier("controllable_storage");
 
 	@Override
 	public ItemMatchResult getItemMatch(ItemStackKey stackKey, IControllableStorage storage) {
@@ -35,7 +35,7 @@ public class ControllableStorageItemActionHandler implements IBlockEntityItemAct
 	}
 
 	@Override
-	public ResourceLocation id() {
+	public Identifier id() {
 		return ID;
 	}
 

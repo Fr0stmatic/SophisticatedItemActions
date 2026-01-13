@@ -5,7 +5,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.util.StreamCodecHelper;
@@ -16,18 +16,18 @@ import java.util.List;
 import java.util.Map;
 
 public record DepositItemsPayload(int minSlot, int maxSlot,
-								  Map<ResourceLocation, List<BlockPos>> storagePositions,
-								  Map<ResourceLocation, List<Integer>> entityIds,
+								  Map<Identifier, List<BlockPos>> storagePositions,
+								  Map<Identifier, List<Integer>> entityIds,
 								  boolean onlyMatching) implements CustomPacketPayload {
-	public static final Type<DepositItemsPayload> TYPE = new Type<>(SophisticatedCore.getRL("deposit_items"));
+	public static final Type<DepositItemsPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("deposit_items"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, DepositItemsPayload> STREAM_CODEC = StreamCodec.composite(
 			ByteBufCodecs.INT,
 			DepositItemsPayload::minSlot,
 			ByteBufCodecs.INT,
 			DepositItemsPayload::maxSlot,
-			StreamCodecHelper.ofMap(ResourceLocation.STREAM_CODEC, BlockPos.STREAM_CODEC.apply(ByteBufCodecs.list()), HashMap::new),
+			StreamCodecHelper.ofMap(Identifier.STREAM_CODEC, BlockPos.STREAM_CODEC.apply(ByteBufCodecs.list()), HashMap::new),
 			DepositItemsPayload::storagePositions,
-			StreamCodecHelper.ofMap(ResourceLocation.STREAM_CODEC, ByteBufCodecs.INT.apply(ByteBufCodecs.list()), HashMap::new),
+			StreamCodecHelper.ofMap(Identifier.STREAM_CODEC, ByteBufCodecs.INT.apply(ByteBufCodecs.list()), HashMap::new),
 			DepositItemsPayload::entityIds,
 			ByteBufCodecs.BOOL,
 			DepositItemsPayload::onlyMatching,

@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticateditemactions.compat.sophisticatedstorageinmotion;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
@@ -19,10 +19,10 @@ import java.util.Optional;
 
 public class MovingStorageItemActionHandler implements IEntityItemActionHandler {
 	public static final MovingStorageItemActionHandler INSTANCE = new MovingStorageItemActionHandler();
-	public static final ResourceLocation ID = SophisticatedItemActions.getRL(SophisticatedStorageInMotion.MOD_ID);
+	public static final Identifier ID = SophisticatedItemActions.getIdentifier(SophisticatedStorageInMotion.MOD_ID);
 
 	@Override
-	public ResourceLocation id() {
+	public Identifier id() {
 		return ID;
 	}
 

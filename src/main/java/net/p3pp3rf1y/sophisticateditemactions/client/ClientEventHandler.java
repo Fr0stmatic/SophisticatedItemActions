@@ -31,7 +31,7 @@ import static net.neoforged.neoforge.client.settings.KeyConflictContext.GUI;
 import static net.neoforged.neoforge.client.settings.KeyConflictContext.IN_GAME;
 
 public class ClientEventHandler {
-	private static final KeyMapping.Category KEYBIND_SOPHISTICATEDCORE_CATEGORY = new KeyMapping.Category(SophisticatedItemActions.getRL("main"));
+	private static final KeyMapping.Category KEYBIND_SOPHISTICATEDCORE_CATEGORY = new KeyMapping.Category(SophisticatedItemActions.getIdentifier("main"));
 	public static final KeyMapping ITEM_HIGHLIGHT_KEYBIND = new KeyMapping(ItemActionsTranslationHelper.INSTANCE.translKeybind("item_highlight"),
 			ClientEventHandler.ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_SEMICOLON), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
 	public static final KeyMapping ITEM_DEPOSIT_KEYBIND = new KeyMapping(ItemActionsTranslationHelper.INSTANCE.translKeybind("deposit_item"),

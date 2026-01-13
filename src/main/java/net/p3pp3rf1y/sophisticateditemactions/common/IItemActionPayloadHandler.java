@@ -2,10 +2,10 @@ package net.p3pp3rf1y.sophisticateditemactions.common;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public interface IItemActionPayloadHandler<T> {
-	ResourceLocation id();
+	Identifier id();
 
 	StreamCodec<ByteBuf, T> codec();
 

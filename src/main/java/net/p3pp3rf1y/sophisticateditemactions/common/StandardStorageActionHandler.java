@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticateditemactions.common;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
@@ -25,10 +25,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class StandardStorageActionHandler implements IBlockItemActionHandler, IEntityItemActionHandler {
 	public static final StandardStorageActionHandler INSTANCE = new StandardStorageActionHandler();
-	public static final ResourceLocation ID = SophisticatedItemActions.getRL("item_handler");
+	public static final Identifier ID = SophisticatedItemActions.getIdentifier("item_handler");
 
 	@Override
-	public ResourceLocation id() {
+	public Identifier id() {
 		return ID;
 	}
 

@@ -5,7 +5,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
@@ -19,15 +19,15 @@ import java.util.List;
 import java.util.Map;
 
 public record RequestItemHighlightsPayload(ItemStack stack,
-										   Map<ResourceLocation, List<BlockPos>> inventoryPositions,
-										   Map<ResourceLocation, List<Integer>> entities) implements CustomPacketPayload {
-	public static final Type<RequestItemHighlightsPayload> TYPE = new Type<>(SophisticatedCore.getRL("request_item_highlights"));
+										   Map<Identifier, List<BlockPos>> inventoryPositions,
+										   Map<Identifier, List<Integer>> entities) implements CustomPacketPayload {
+	public static final Type<RequestItemHighlightsPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("request_item_highlights"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, RequestItemHighlightsPayload> STREAM_CODEC = StreamCodec.composite(
 			ItemStack.STREAM_CODEC,
 			RequestItemHighlightsPayload::stack,
-			StreamCodecHelper.ofMap(ResourceLocation.STREAM_CODEC, BlockPos.STREAM_CODEC.apply(ByteBufCodecs.list()), HashMap::new),
+			StreamCodecHelper.ofMap(Identifier.STREAM_CODEC, BlockPos.STREAM_CODEC.apply(ByteBufCodecs.list()), HashMap::new),
 			RequestItemHighlightsPayload::inventoryPositions,
-			StreamCodecHelper.ofMap(ResourceLocation.STREAM_CODEC, ByteBufCodecs.INT.apply(ByteBufCodecs.list()), HashMap::new),
+			StreamCodecHelper.ofMap(Identifier.STREAM_CODEC, ByteBufCodecs.INT.apply(ByteBufCodecs.list()), HashMap::new),
 			RequestItemHighlightsPayload::entities,
 			RequestItemHighlightsPayload::new);
 
@@ -40,8 +40,8 @@ public record RequestItemHighlightsPayload(ItemStack stack,
 		ItemStackKey stackKey = ItemStackKey.of(payload.stack());
 		Player player = context.player();
 
-		Map<ResourceLocation, List<BlockPos>> inventoryPositions = payload.inventoryPositions();
-		Map<ResourceLocation, List<Integer>> entities = payload.entities();
+		Map<Identifier, List<BlockPos>> inventoryPositions = payload.inventoryPositions();
+		Map<Identifier, List<Integer>> entities = payload.entities();
 
 		HighlightHandler.handleHighlight(player, stackKey, inventoryPositions, entities);
 	}

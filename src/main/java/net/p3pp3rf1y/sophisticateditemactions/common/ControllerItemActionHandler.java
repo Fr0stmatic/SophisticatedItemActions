@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticateditemactions.common;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.p3pp3rf1y.sophisticatedcore.controller.ControllerBlockEntityBase;
@@ -10,7 +10,7 @@ import net.p3pp3rf1y.sophisticateditemactions.SophisticatedItemActions;
 
 public class ControllerItemActionHandler implements IBlockEntityItemActionHandler<ControllerBlockEntityBase> {
 	public static final ControllerItemActionHandler INSTANCE = new ControllerItemActionHandler();
-	public static final ResourceLocation ID = SophisticatedItemActions.getRL("controller");
+	public static final Identifier ID = SophisticatedItemActions.getIdentifier("controller");
 
 	@Override
 	public boolean handlesAction(Action action) {
@@ -69,7 +69,7 @@ public class ControllerItemActionHandler implements IBlockEntityItemActionHandle
 	}
 
 	@Override
-	public ResourceLocation id() {
+	public Identifier id() {
 		return ID;
 	}
 }

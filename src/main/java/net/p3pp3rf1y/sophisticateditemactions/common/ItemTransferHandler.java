@@ -5,7 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -44,8 +44,8 @@ public class ItemTransferHandler {
 	}
 
 	private static void depositItem(Player player, int minSlot, int maxSlot, boolean onlyMatching) {
-		Map<ResourceLocation, List<BlockPos>> storages = getInteractionStoragePositionsAround(player);
-		Map<ResourceLocation, List<Integer>> entities = getStorageEntitiesAround(player);
+		Map<Identifier, List<BlockPos>> storages = getInteractionStoragePositionsAround(player);
+		Map<Identifier, List<Integer>> entities = getStorageEntitiesAround(player);
 
 		if (!storages.isEmpty() || !entities.isEmpty()) {
 			ClientPacketDistributor.sendToServer(new DepositItemsPayload(minSlot, maxSlot, storages, entities, onlyMatching));
@@ -54,8 +54,8 @@ public class ItemTransferHandler {
 		}
 	}
 
-	private static Map<ResourceLocation, List<BlockPos>> getInteractionStoragePositionsAround(Player player) {
-		Map<ResourceLocation, Set<BlockPos>> tempStorages = new HashMap<>();
+	private static Map<Identifier, List<BlockPos>> getInteractionStoragePositionsAround(Player player) {
+		Map<Identifier, Set<BlockPos>> tempStorages = new HashMap<>();
 		Level level = player.level();
 		WorldHelper.getBlockEntitiesInRange(level, player.blockPosition(), INTERACTION_RANGE).forEach(be -> {
 			ItemActionHandlerRegistry.getBlockHandlerFor(level, be.getBlockPos(), be, IBlockItemActionHandler.Action.DEPOSIT)
@@ -64,13 +64,13 @@ public class ItemTransferHandler {
 					});
 		});
 
-		Map<ResourceLocation, List<BlockPos>> storages = new HashMap<>();
+		Map<Identifier, List<BlockPos>> storages = new HashMap<>();
 		tempStorages.forEach((key, value) -> storages.put(key, new ArrayList<>(value)));
 		return storages;
 	}
 
-	private static Map<ResourceLocation, List<Integer>> getStorageEntitiesAround(Player player) {
-		Map<ResourceLocation, List<Integer>> entities = new HashMap<>();
+	private static Map<Identifier, List<Integer>> getStorageEntitiesAround(Player player) {
+		Map<Identifier, List<Integer>> entities = new HashMap<>();
 		player.level().getEntities(player, player.getBoundingBox().inflate(INTERACTION_RANGE),
 						e -> e.distanceTo(player) <= INTERACTION_RANGE)
 				.forEach(e ->
@@ -80,7 +80,7 @@ public class ItemTransferHandler {
 		return entities;
 	}
 
-	public static void handleDeposit(Player player, int minSlot, int maxSlot, Map<ResourceLocation, List<BlockPos>> storagePositions, Map<ResourceLocation, List<Integer>> entities, boolean onlyMatching) {
+	public static void handleDeposit(Player player, int minSlot, int maxSlot, Map<Identifier, List<BlockPos>> storagePositions, Map<Identifier, List<Integer>> entities, boolean onlyMatching) {
 		if (!(player instanceof ServerPlayer serverPlayer)) {
 			return;
 		}
@@ -147,7 +147,7 @@ public class ItemTransferHandler {
 			if (inserted.isEmpty()) {
 				message = ItemActionsTranslationHelper.INSTANCE.translStatusMessage("cannot_deposit_item",
 						Component.literal(player.getInventory().getItem(minSlot).getHoverName().getString()).withStyle(ChatFormatting.RED));
-				player.playNotifySound(SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
+				level.playSound(null, player, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
 			} else {
 				message = ItemActionsTranslationHelper.INSTANCE.translStatusMessage("deposited_item",
 						Component.literal(inserted.values().iterator().next().iterator().next().getHoverName().getString()).withStyle(ChatFormatting.DARK_GREEN));
@@ -155,7 +155,7 @@ public class ItemTransferHandler {
 		} else {
 			if (inserted.isEmpty()) {
 				message = ItemActionsTranslationHelper.INSTANCE.translStatusMessage("cannot_deposit_items");
-				player.playNotifySound(SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
+				level.playSound(null, player, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
 			} else {
 				message = ItemActionsTranslationHelper.INSTANCE.translStatusMessage("deposited_items", Component.literal(String.valueOf(depositedFromSlots.size())).withStyle(ChatFormatting.DARK_GREEN));
 			}
@@ -163,7 +163,7 @@ public class ItemTransferHandler {
 		player.displayClientMessage(message, true);
 	}
 
-	private static List<IDepositHandler> collectAndSortDepositHandlers(Player player, Map<ResourceLocation, List<BlockPos>> storagePositions, Map<ResourceLocation, List<Integer>> entities, ServerPlayer serverPlayer) {
+	private static List<IDepositHandler> collectAndSortDepositHandlers(Player player, Map<Identifier, List<BlockPos>> storagePositions, Map<Identifier, List<Integer>> entities, ServerPlayer serverPlayer) {
 		List<IDepositHandler> handlers = new ArrayList<>();
 
 		storagePositions.forEach((handlerId, positions) ->
@@ -231,8 +231,8 @@ public class ItemTransferHandler {
 			playError(player, ItemActionsTranslationHelper.INSTANCE.translStatusMessage("cannot_restock_full_stacks").setStyle(Style.EMPTY.withColor(0xFF5555)));
 			return;
 		}
-		Map<ResourceLocation, List<BlockPos>> storages = getInteractionStoragePositionsAround(player);
-		Map<ResourceLocation, List<Integer>> entities = getStorageEntitiesAround(player);
+		Map<Identifier, List<BlockPos>> storages = getInteractionStoragePositionsAround(player);
+		Map<Identifier, List<Integer>> entities = getStorageEntitiesAround(player);
 
 		if (!storages.isEmpty() || !entities.isEmpty()) {
 			ClientPacketDistributor.sendToServer(new RestockItemsPayload(filter, minSlot, maxSlot, fillEmpty, storages, entities));
@@ -256,7 +256,7 @@ public class ItemTransferHandler {
 		player.playSound(SoundEvents.NOTE_BLOCK_BASS.value(), 1, 0.45f + RandHelper.getRandomMinusOneToOne(player.level().random) * 0.1F);
 	}
 
-	public static void handleRestock(Player player, Map<ResourceLocation, List<BlockPos>> storagePositions, Map<ResourceLocation, List<Integer>> entities, int minSlot, int maxSlot, ItemStack filter, boolean fillEmpty) {
+	public static void handleRestock(Player player, Map<Identifier, List<BlockPos>> storagePositions, Map<Identifier, List<Integer>> entities, int minSlot, int maxSlot, ItemStack filter, boolean fillEmpty) {
 		if (!(player instanceof ServerPlayer serverPlayer)) {
 			return;
 		}
@@ -289,7 +289,7 @@ public class ItemTransferHandler {
 				ItemStack item = fillEmpty ? filter : player.getInventory().getItem(minSlot);
 				message = ItemActionsTranslationHelper.INSTANCE.translStatusMessage("cannot_restock_item",
 						Component.literal(item.getHoverName().getString()).withStyle(ChatFormatting.RED));
-				player.playNotifySound(SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
+				level.playSound(null, player, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
 			} else {
 				message = ItemActionsTranslationHelper.INSTANCE.translStatusMessage("restocked_item",
 						Component.literal(transferredItems.values().iterator().next().iterator().next().getHoverName().getString()).withStyle(ChatFormatting.DARK_GREEN));
@@ -297,7 +297,7 @@ public class ItemTransferHandler {
 		} else {
 			if (transferredItems.isEmpty()) {
 				message = ItemActionsTranslationHelper.INSTANCE.translStatusMessage("cannot_restock_items");
-				player.playNotifySound(SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
+				level.playSound(null, player, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
 			} else {
 				message = ItemActionsTranslationHelper.INSTANCE.translStatusMessage("restocked_items", Component.literal(String.valueOf(restockedPlayerSlots.size())).withStyle(ChatFormatting.DARK_GREEN));
 			}
@@ -331,7 +331,7 @@ public class ItemTransferHandler {
 		}
 	}
 
-	private static List<IRestockHandler> collectAndSortRestockHandlers(Player player, Map<ResourceLocation, List<BlockPos>> storagePositions, Map<ResourceLocation, List<Integer>> entities, ServerPlayer serverPlayer) {
+	private static List<IRestockHandler> collectAndSortRestockHandlers(Player player, Map<Identifier, List<BlockPos>> storagePositions, Map<Identifier, List<Integer>> entities, ServerPlayer serverPlayer) {
 		List<IRestockHandler> handlers = new ArrayList<>();
 
 		storagePositions.forEach((handlerId, positions) ->
