@@ -5,7 +5,9 @@ import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.ingredients.ITypedIngredient;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.ScreenEvent;
@@ -28,8 +30,28 @@ public class JeiClientCompat {
 		IEventBus eventBus = NeoForge.EVENT_BUS;
 		eventBus.addListener(JeiClientCompat::handleGuiKeyPress);
 		eventBus.addListener(JeiClientCompat::handleGuiMouseKeyPress);
-		ClientEventHandler.registerHoveredStackSupplier(() -> getStack().orElse(ItemStack.EMPTY));
+		ClientEventHandler.registerHoveredStackProvider(new ClientEventHandler.IHoveredStackProvider() {
+			@Override
+			public ItemStack getHoveredStack(Screen screen) {
+				return getStack().orElse(ItemStack.EMPTY);
+			}
 
+			@Override
+			public boolean restockSingle(Screen screen) {
+				//in case of crafting grid return single
+				return runtime != null && runtime.getRecipesGui().getIngredientUnderMouse(VanillaTypes.ITEM_STACK).isPresent();
+			}
+
+			@Override
+			public int getRestockSlot(Screen screen, Player player) {
+				return player.getInventory().getFreeSlot();
+			}
+
+			@Override
+			public boolean restockEmptySlot() {
+				return true;
+			}
+		});
 	}
 
 	private static Optional<ItemStack> getStack() {
