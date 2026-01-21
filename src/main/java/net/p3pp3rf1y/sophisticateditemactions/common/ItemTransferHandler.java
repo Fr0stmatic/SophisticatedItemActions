@@ -198,27 +198,27 @@ public class ItemTransferHandler {
 		return stack;
 	}
 
-	public static void restockMultipleItems(Player player, ItemStack filter, boolean mainInventory, boolean hotbar, boolean fillEmpty) {
+	public static void restockMultipleItems(Player player, ItemStack filter, boolean mainInventory, boolean hotbar, boolean fillEmpty, boolean refillSingle) {
 		if (!mainInventory && !hotbar) {
 			throw new IllegalArgumentException("At least one of mainInventory or hotbar must be true");
 		}
 
 		int minSlot = hotbar ? 0 : 9;
 		int maxSlot = mainInventory ? 36 : 9;
-		restockItem(player, filter, minSlot, maxSlot, fillEmpty);
+		restockItem(player, filter, minSlot, maxSlot, fillEmpty, refillSingle);
 	}
 
-	public static void restockItem(Player player, ItemStack filter, int itemSlot, boolean fillEmpty) {
+	public static void restockItem(Player player, ItemStack filter, int itemSlot, boolean fillEmpty, boolean refillSingle) {
 		ItemStack item = player.getInventory().getItem(itemSlot);
 		if (!fillEmpty && item.getCount() == item.getMaxStackSize()) {
 			playError(player, ItemActionsTranslationHelper.INSTANCE.translStatusMessage("cannot_restock_full_stack", item.getHoverName().copy().setStyle(Style.EMPTY.withColor(0xFF5555))));
 			return;
 		}
 
-		restockItem(player, filter, itemSlot, itemSlot + 1, fillEmpty);
+		restockItem(player, filter, itemSlot, itemSlot + 1, fillEmpty, refillSingle);
 	}
 
-	private static void restockItem(Player player, ItemStack filter, int minSlot, int maxSlot, boolean fillEmpty) {
+	private static void restockItem(Player player, ItemStack filter, int minSlot, int maxSlot, boolean fillEmpty, boolean refillSingle) {
 		if (maxSlot - minSlot > 1 && checkStacksDoNotAllowRestock(player, minSlot, maxSlot, fillEmpty)) {
 			playError(player, ItemActionsTranslationHelper.INSTANCE.translStatusMessage("cannot_restock_full_stacks").setStyle(Style.EMPTY.withColor(0xFF5555)));
 			return;
@@ -227,7 +227,7 @@ public class ItemTransferHandler {
 		Map<ResourceLocation, List<Integer>> entities = getStorageEntitiesAround(player);
 
 		if (!storages.isEmpty() || !entities.isEmpty()) {
-			PacketDistributor.sendToServer(new RestockItemsPayload(filter, minSlot, maxSlot, fillEmpty, storages, entities));
+			PacketDistributor.sendToServer(new RestockItemsPayload(filter, minSlot, maxSlot, fillEmpty, refillSingle, storages, entities));
 		} else {
 			playError(player, ItemActionsTranslationHelper.INSTANCE.translStatusMessage("no_storage_in_range").setStyle(Style.EMPTY.withColor(0xFF5555)));
 		}
@@ -248,7 +248,7 @@ public class ItemTransferHandler {
 		player.playSound(SoundEvents.NOTE_BLOCK_BASS.value(), 1, 0.45f + RandHelper.getRandomMinusOneToOne(player.level().random) * 0.1F);
 	}
 
-	public static void handleRestock(Player player, Map<ResourceLocation, List<BlockPos>> storagePositions, Map<ResourceLocation, List<Integer>> entities, int minSlot, int maxSlot, ItemStack filter, boolean fillEmpty) {
+	public static void handleRestock(Player player, Map<ResourceLocation, List<BlockPos>> storagePositions, Map<ResourceLocation, List<Integer>> entities, int minSlot, int maxSlot, ItemStack filter, boolean fillEmpty, boolean refillSingle) {
 		if (!(player instanceof ServerPlayer serverPlayer)) {
 			return;
 		}
@@ -261,11 +261,13 @@ public class ItemTransferHandler {
 			ItemStack playerInventoryStack = player.getInventory().getItem(playerInventorySlot);
 			if (fillEmpty && !filter.isEmpty()) {
 				if (playerInventoryStack.isEmpty() || ItemStack.isSameItemSameComponents(playerInventoryStack, filter)) {
-					restockSlot(restockHandlers, filter, playerInventoryStack, transferredItems, restockedPlayerSlots, player, playerInventorySlot);
+					int countToRestock = refillSingle ? 1 : filter.getMaxStackSize() - playerInventoryStack.getCount();
+					restockSlot(restockHandlers, filter, playerInventoryStack, transferredItems, restockedPlayerSlots, player, playerInventorySlot, countToRestock);
 				}
 			} else {
 				if (!playerInventoryStack.isEmpty()) {
-					restockSlot(restockHandlers, playerInventoryStack, playerInventoryStack, transferredItems, restockedPlayerSlots, player, playerInventorySlot);
+					int countToRestock = refillSingle ? 1 : playerInventoryStack.getMaxStackSize() - playerInventoryStack.getCount();
+					restockSlot(restockHandlers, playerInventoryStack, playerInventoryStack, transferredItems, restockedPlayerSlots, player, playerInventorySlot, countToRestock);
 				}
 			}
 		}
@@ -297,8 +299,12 @@ public class ItemTransferHandler {
 		player.displayClientMessage(message, true);
 	}
 
-	private static void restockSlot(List<IRestockHandler> restockHandlers, ItemStack filter, ItemStack playerInventoryStack, Map<Vec3, List<ItemStack>> restocked, Set<Integer> restockedPlayerSlots, Player player, int playerInventorySlot) {
-		ItemStack stackToExtract = filter.copyWithCount(filter.getMaxStackSize() - playerInventoryStack.getCount());
+	private static void restockSlot(List<IRestockHandler> restockHandlers, ItemStack filter, ItemStack playerInventoryStack, Map<Vec3, List<ItemStack>> restocked, Set<Integer> restockedPlayerSlots, Player player, int playerInventorySlot, int countToRestock) {
+		if (playerInventoryStack.getCount() >= filter.getMaxStackSize()) {
+			return;
+		}
+
+		ItemStack stackToExtract = filter.copyWithCount(countToRestock);
 
 		int totalExtracted = 0;
 		int originalCount = stackToExtract.getCount();
