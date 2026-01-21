@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public record RestockItemsMessage(ItemStack filter, int minSlot, int maxSlot, boolean fillEmpty,
+public record RestockItemsMessage(ItemStack filter, int minSlot, int maxSlot, boolean fillEmpty, boolean refillSingle,
 								  Map<ResourceLocation, List<BlockPos>> storagePositions,
 								  Map<ResourceLocation, List<Integer>> entityIds) {
 
@@ -21,6 +21,7 @@ public record RestockItemsMessage(ItemStack filter, int minSlot, int maxSlot, bo
 		packetBuffer.writeInt(msg.minSlot);
 		packetBuffer.writeInt(msg.maxSlot);
 		packetBuffer.writeBoolean(msg.fillEmpty);
+		packetBuffer.writeBoolean(msg.refillSingle);
 		packetBuffer.writeMap(msg.storagePositions, FriendlyByteBuf::writeResourceLocation,
 				(buf, list) -> buf.writeCollection(list, FriendlyByteBuf::writeBlockPos));
 		packetBuffer.writeMap(msg.entityIds, FriendlyByteBuf::writeResourceLocation,
@@ -32,6 +33,7 @@ public record RestockItemsMessage(ItemStack filter, int minSlot, int maxSlot, bo
 				packetBuffer.readItem(),
 				packetBuffer.readInt(),
 				packetBuffer.readInt(),
+				packetBuffer.readBoolean(),
 				packetBuffer.readBoolean(),
 				packetBuffer.readMap(FriendlyByteBuf::readResourceLocation,
 						buf -> buf.readList(FriendlyByteBuf::readBlockPos)),
@@ -51,7 +53,7 @@ public record RestockItemsMessage(ItemStack filter, int minSlot, int maxSlot, bo
 		if (sender == null) {
 			return;
 		}
-		ItemTransferHandler.handleRestock(sender, msg.storagePositions(), msg.entityIds, msg.minSlot(), msg.maxSlot(), msg.filter(), msg.fillEmpty());
+		ItemTransferHandler.handleRestock(sender, msg.storagePositions(), msg.entityIds, msg.minSlot(), msg.maxSlot(), msg.filter(), msg.fillEmpty(), msg.refillSingle());
 	}
 
 }
