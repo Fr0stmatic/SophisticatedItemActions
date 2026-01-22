@@ -1,6 +1,8 @@
 // Auto generated package-info by MCP
 
-@ParametersAreNonnullByDefault @MethodsReturnNonnullByDefault
+@ParametersAreNonnullByDefault @NullMarked
 package net.p3pp3rf1y.sophisticateditemactions.compat.recipeviewers.emi;
+
+import org.jspecify.annotations.NullMarked;
 
 import javax.annotation.ParametersAreNonnullByDefault;

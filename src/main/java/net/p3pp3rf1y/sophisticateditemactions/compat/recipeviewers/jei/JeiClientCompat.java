@@ -14,8 +14,8 @@ import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.p3pp3rf1y.sophisticateditemactions.client.ClientEventHandler;
 import net.p3pp3rf1y.sophisticateditemactions.common.HighlightHandler;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class JeiClientCompat {

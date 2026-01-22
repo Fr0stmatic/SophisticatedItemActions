@@ -20,9 +20,9 @@ import net.p3pp3rf1y.sophisticateditemactions.client.render.EntityHighlightRende
 import net.p3pp3rf1y.sophisticateditemactions.client.render.ItemFlightAnimator;
 import net.p3pp3rf1y.sophisticateditemactions.common.HighlightHandler;
 import net.p3pp3rf1y.sophisticateditemactions.common.ItemTransferHandler;
+import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 

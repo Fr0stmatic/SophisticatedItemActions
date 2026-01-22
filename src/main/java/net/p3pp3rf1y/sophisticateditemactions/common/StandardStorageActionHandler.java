@@ -18,8 +18,8 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticateditemactions.SophisticatedItemActions;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
