@@ -42,7 +42,7 @@ public class HighlightHandler {
 
 		Map<ResourceLocation, List<Integer>> entities = new HashMap<>();
 		player.level().getEntities(player, player.getBoundingBox().inflate(HIGHLIGHT_RANGE),
-						e -> e.distanceTo(player) <= HIGHLIGHT_RANGE)
+						e -> !(e instanceof Player) && e.distanceTo(player) <= HIGHLIGHT_RANGE)
 				.forEach(e ->
 						ItemActionHandlerRegistry.getEntityHandlerIdFor(e)
 								.ifPresent(id -> entities.computeIfAbsent(id, k -> new ArrayList<>()).add(e.getId()))
