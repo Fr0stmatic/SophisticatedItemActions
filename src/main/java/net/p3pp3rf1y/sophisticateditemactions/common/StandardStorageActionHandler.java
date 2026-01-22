@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -33,7 +34,7 @@ public class StandardStorageActionHandler implements IBlockItemActionHandler, IE
 
 	@Override
 	public boolean canActOn(Entity entity) {
-		return entity.getCapability(ForgeCapabilities.ITEM_HANDLER, null).isPresent();
+		return !(entity instanceof Player) && entity.getCapability(ForgeCapabilities.ITEM_HANDLER, null).isPresent();
 	}
 
 	@Override
