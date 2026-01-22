@@ -3,6 +3,7 @@ package net.p3pp3rf1y.sophisticateditemactions.init;
 import net.minecraftforge.fml.ModList;
 import net.p3pp3rf1y.sophisticatedcore.compat.CompatModIds;
 import net.p3pp3rf1y.sophisticatedcore.compat.ICompat;
+import net.p3pp3rf1y.sophisticateditemactions.compat.recipeviewers.emi.EmiCompat;
 import net.p3pp3rf1y.sophisticateditemactions.compat.recipeviewers.jei.JeiCompat;
 import net.p3pp3rf1y.sophisticateditemactions.compat.sophisticatedstorageinmotion.StorageInMotionCompat;
 import net.p3pp3rf1y.sophisticatedstorageinmotion.SophisticatedStorageInMotion;
@@ -22,6 +23,7 @@ public class ModCompat {
 
 	public static void register() {
 		compatFactories.put(CompatModIds.JEI, () -> JeiCompat::new);
+		compatFactories.put(CompatModIds.EMI, () -> EmiCompat::new);
 		compatFactories.put(STORAGE_IN_MOTION, () -> StorageInMotionCompat::new);
 	}
 

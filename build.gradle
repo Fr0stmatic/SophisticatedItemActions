@@ -151,7 +151,7 @@ dependencies {
     minecraft "net.neoforged:forge:${minecraft_version}-${neo_version}"
 
     compileOnly fg.deobf("mezz.jei:jei-${jei_mc_version}:${jei_version}")
-    compileOnly fg.deobf("dev.emi:emi-forge:${emi_version}:api")
+    compileOnly fg.deobf("dev.emi:emi-forge:${emi_version}")
     compileOnly fg.deobf("me.shedaniel:RoughlyEnoughItems-forge:${rei_version}")
 
     if (findProject(':SophisticatedCore') != null) {

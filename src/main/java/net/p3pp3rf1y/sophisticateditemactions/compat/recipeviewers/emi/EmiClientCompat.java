@@ -1,9 +1,9 @@
-package net.p3pp3rf1y.sophisticateditemactions.compat.recipeviewers.jei;
+package net.p3pp3rf1y.sophisticateditemactions.compat.recipeviewers.emi;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import mezz.jei.api.constants.VanillaTypes;
-import mezz.jei.api.ingredients.ITypedIngredient;
-import mezz.jei.api.runtime.IJeiRuntime;
+import dev.emi.emi.api.EmiApi;
+import dev.emi.emi.api.stack.EmiStack;
+import dev.emi.emi.screen.RecipeScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
@@ -15,31 +15,23 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.p3pp3rf1y.sophisticateditemactions.client.ClientEventHandler;
 import net.p3pp3rf1y.sophisticateditemactions.common.HighlightHandler;
 
-import javax.annotation.Nullable;
-import java.util.Optional;
+import java.util.List;
 
-public class JeiClientCompat {
-	@Nullable
-	private static IJeiRuntime runtime = null;
-
-	public static void setRuntime(@Nullable IJeiRuntime runtime) {
-		JeiClientCompat.runtime = runtime;
-	}
-
+public class EmiClientCompat {
 	public static void init() {
 		IEventBus eventBus = MinecraftForge.EVENT_BUS;
-		eventBus.addListener(JeiClientCompat::handleGuiKeyPress);
-		eventBus.addListener(JeiClientCompat::handleGuiMouseKeyPress);
+		eventBus.addListener(EmiClientCompat::handleGuiKeyPress);
+		eventBus.addListener(EmiClientCompat::handleGuiMouseKeyPress);
 		ClientEventHandler.registerHoveredStackProvider(new ClientEventHandler.IHoveredStackProvider() {
 			@Override
 			public ItemStack getHoveredStack(Screen screen) {
-				return getStack().orElse(ItemStack.EMPTY);
+				return getStack();
 			}
 
 			@Override
 			public boolean restockSingle(Screen screen) {
 				//in case of crafting grid return single
-				return runtime != null && runtime.getRecipesGui().getIngredientUnderMouse(VanillaTypes.ITEM_STACK).isPresent();
+				return Minecraft.getInstance().screen instanceof RecipeScreen;
 			}
 
 			@Override
@@ -54,32 +46,35 @@ public class JeiClientCompat {
 		});
 	}
 
-	private static Optional<ItemStack> getStack() {
-		return runtime == null ? Optional.empty() : runtime.getIngredientListOverlay().getIngredientUnderMouse()
-				.or(() -> runtime.getBookmarkOverlay().getIngredientUnderMouse())
-				.flatMap(ITypedIngredient::getItemStack)
-				.or(() -> runtime.getRecipesGui().getIngredientUnderMouse(VanillaTypes.ITEM_STACK));
+	private static ItemStack getStack() {
+		List<EmiStack> emiStacks;
+		if (Minecraft.getInstance().screen instanceof RecipeScreen recipeScreen) {
+			emiStacks = recipeScreen.getHoveredStack().getEmiStacks();
+		} else {
+			emiStacks = EmiApi.getHoveredStack(true).getStack().getEmiStacks();
+		}
+		return emiStacks.isEmpty() ? ItemStack.EMPTY : emiStacks.get(0).getItemStack();
 	}
 
 	public static void handleGuiKeyPress(ScreenEvent.KeyPressed.Pre event) {
-		if (runtime == null) {
-			return;
-		}
 		InputConstants.Key key = InputConstants.getKey(event.getKeyCode(), event.getScanCode());
-		if (ClientEventHandler.ITEM_HIGHLIGHT_KEYBIND.isActiveAndMatches(key) && getStack().map(JeiClientCompat::tryHighlightItem).orElse(false)) {
-			event.getScreen().getMinecraft().setScreen(null);
-			event.setCanceled(true);
+		if (ClientEventHandler.ITEM_HIGHLIGHT_KEYBIND.isActiveAndMatches(key)) {
+			ItemStack stack = getStack();
+			if (!stack.isEmpty() && tryHighlightItem(stack)) {
+				event.getScreen().getMinecraft().setScreen(null);
+				event.setCanceled(true);
+			}
 		}
 	}
 
 	public static void handleGuiMouseKeyPress(ScreenEvent.MouseButtonPressed.Pre event) {
-		if (runtime == null) {
-			return;
-		}
 		InputConstants.Key input = InputConstants.Type.MOUSE.getOrCreate(event.getButton());
-		if (ClientEventHandler.ITEM_HIGHLIGHT_KEYBIND.isActiveAndMatches(input) && getStack().map(JeiClientCompat::tryHighlightItem).orElse(false)) {
-			event.getScreen().getMinecraft().setScreen(null);
-			event.setCanceled(true);
+		if (ClientEventHandler.ITEM_HIGHLIGHT_KEYBIND.isActiveAndMatches(input)) {
+			ItemStack stack = getStack();
+			if (!stack.isEmpty() && tryHighlightItem(stack)) {
+				event.getScreen().getMinecraft().setScreen(null);
+				event.setCanceled(true);
+			}
 		}
 	}
 
