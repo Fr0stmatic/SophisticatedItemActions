@@ -30,15 +30,15 @@ import static net.neoforged.neoforge.client.settings.KeyConflictContext.GUI;
 import static net.neoforged.neoforge.client.settings.KeyConflictContext.IN_GAME;
 
 public class ClientEventHandler {
-	private static final KeyMapping.Category KEYBIND_SOPHISTICATEDCORE_CATEGORY = new KeyMapping.Category(SophisticatedItemActions.getIdentifier("main"));
+	private static final KeyMapping.Category KEYBIND_SOPHISTICATEDITEMACTIONS_CATEGORY = new KeyMapping.Category(SophisticatedItemActions.getIdentifier("main"));
 	public static final KeyMapping ITEM_HIGHLIGHT_KEYBIND = new KeyMapping(ItemActionsTranslationHelper.INSTANCE.translKeybind("item_highlight"),
-			ClientEventHandler.ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_SEMICOLON), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
+			ClientEventHandler.ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_SEMICOLON), KEYBIND_SOPHISTICATEDITEMACTIONS_CATEGORY);
 	public static final KeyMapping ITEM_DEPOSIT_KEYBIND = new KeyMapping(ItemActionsTranslationHelper.INSTANCE.translKeybind("deposit_item"),
-			ClientEventHandler.ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_APOSTROPHE), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
+			ClientEventHandler.ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_APOSTROPHE), KEYBIND_SOPHISTICATEDITEMACTIONS_CATEGORY);
 	public static final KeyMapping ITEM_RESTOCK_KEYBIND = new KeyMapping(ItemActionsTranslationHelper.INSTANCE.translKeybind("restock_item"),
-			ClientEventHandler.ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_BACKSLASH), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
+			ClientEventHandler.ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_BACKSLASH), KEYBIND_SOPHISTICATEDITEMACTIONS_CATEGORY);
 	private static final List<IHoveredStackProvider> HOVERED_STACK_PROVIDERS = new ArrayList<>();
-	private static final IHoveredStackProvider DEFAULT_HOVERED_STACK_SUPPLIER = new IHoveredStackProvider() {
+	private static final IHoveredStackProvider DEFAULT_HOVERED_STACK_PROVIDER = new IHoveredStackProvider() {
 		@Override
 		public ItemStack getHoveredStack(Screen screen) {
 			if (screen instanceof AbstractContainerScreen<?> containerScreen) {
@@ -87,7 +87,7 @@ public class ClientEventHandler {
 	}
 
 	private static void registerKeyMappings(RegisterKeyMappingsEvent event) {
-		event.registerCategory(KEYBIND_SOPHISTICATEDCORE_CATEGORY);
+		event.registerCategory(KEYBIND_SOPHISTICATEDITEMACTIONS_CATEGORY);
 		event.register(ITEM_HIGHLIGHT_KEYBIND);
 		event.register(ITEM_DEPOSIT_KEYBIND);
 		event.register(ITEM_RESTOCK_KEYBIND);
@@ -96,7 +96,7 @@ public class ClientEventHandler {
 	public static void handleGuiKeyPress(ScreenEvent.KeyPressed.Pre event) {
 		InputConstants.Key key = InputConstants.getKey(event.getKeyEvent());
 		if (ITEM_HIGHLIGHT_KEYBIND.isActiveAndMatches(key) && event.getScreen() instanceof AbstractContainerScreen<?> screen && tryHighlightItem(screen.getSlotUnderMouse())) {
-			screen.onClose();
+			event.getScreen().getMinecraft().setScreen(null);
 			event.setCanceled(true);
 		}
 	}
@@ -104,7 +104,7 @@ public class ClientEventHandler {
 	public static void handleGuiMouseKeyPress(ScreenEvent.MouseButtonPressed.Pre event) {
 		InputConstants.Key input = InputConstants.Type.MOUSE.getOrCreate(event.getButton());
 		if (ITEM_HIGHLIGHT_KEYBIND.isActiveAndMatches(input) && event.getScreen() instanceof AbstractContainerScreen<?> screen && tryHighlightItem(screen.getSlotUnderMouse())) {
-			screen.onClose();
+			event.getScreen().getMinecraft().setScreen(null);
 			event.setCanceled(true);
 		}
 	}
@@ -192,12 +192,12 @@ public class ClientEventHandler {
 	@Nullable
 	private static IHoveredStackProvider getHoveredStackProvider(Screen screen) {
 		for (IHoveredStackProvider provider : HOVERED_STACK_PROVIDERS) {
-			if (provider.restockSingle(screen)) {
+			if (!provider.getHoveredStack(screen).isEmpty()) {
 				return provider;
 			}
 		}
 		if (screen instanceof AbstractContainerScreen<?>) {
-			return DEFAULT_HOVERED_STACK_SUPPLIER;
+			return DEFAULT_HOVERED_STACK_PROVIDER;
 		}
 		return null;
 	}
