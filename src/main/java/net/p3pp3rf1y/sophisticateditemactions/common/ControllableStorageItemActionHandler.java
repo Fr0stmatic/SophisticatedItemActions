@@ -15,7 +15,7 @@ public class ControllableStorageItemActionHandler implements IBlockEntityItemAct
 	public static final ResourceLocation ID = SophisticatedCore.getRL("controllable_storage");
 
 	@Override
-	public ItemMatchResult getItemMatch(ItemStackKey stackKey, IControllableStorage storage) {
+	public ItemMatchResult getItemMatch(ItemStackKey stackKey, IControllableStorage storage, Action action) {
 		ISlotTracker slotTracker = storage.getStorageWrapper().getInventoryHandler().getSlotTracker();
 		return getItemMatchResult(stackKey, slotTracker, false);
 	}
