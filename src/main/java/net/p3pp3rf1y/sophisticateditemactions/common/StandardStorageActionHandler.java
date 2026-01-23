@@ -112,7 +112,7 @@ public class StandardStorageActionHandler implements IBlockItemActionHandler, IE
 	}
 
 	@Override
-	public ItemMatchResult getItemMatch(ServerPlayer player, ItemStackKey stackKey, BlockPos pos) {
+	public ItemMatchResult getItemMatch(ServerPlayer player, ItemStackKey stackKey, BlockPos pos, Action action) {
 		BlockState state = player.level().getBlockState(pos);
 		if (state.getBlock() == Blocks.CHEST && state.getValue(ChestBlock.TYPE) == ChestType.RIGHT) {
 			return ItemMatchResult.NO_MATCH;
