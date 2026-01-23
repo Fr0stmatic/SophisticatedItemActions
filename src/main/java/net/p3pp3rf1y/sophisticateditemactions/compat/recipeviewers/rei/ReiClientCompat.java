@@ -10,7 +10,6 @@ import me.shedaniel.rei.impl.client.gui.widget.EntryWidget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.ScreenEvent;
@@ -34,11 +33,6 @@ public class ReiClientCompat {
 			@Override
 			public boolean restockSingle(Screen screen) {
 				return Minecraft.getInstance().screen instanceof AbstractDisplayViewingScreen;
-			}
-
-			@Override
-			public int getRestockSlot(Screen screen, Player player) {
-				return player.getInventory().getFreeSlot();
 			}
 
 			@Override
