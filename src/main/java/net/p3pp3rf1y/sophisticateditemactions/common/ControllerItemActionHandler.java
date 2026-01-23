@@ -12,11 +12,6 @@ public class ControllerItemActionHandler implements IBlockEntityItemActionHandle
 	public static final ResourceLocation ID = SophisticatedItemActions.getRL("controller");
 
 	@Override
-	public boolean handlesAction(Action action) {
-		return action != Action.HIGHLIGHT;
-	}
-
-	@Override
 	public IDepositHandler getDepositHandler(ControllerBlockEntityBase controller) {
 		Vec3 center = Vec3.atCenterOf(controller.getBlockPos());
 		return new IDepositHandler() {
@@ -52,13 +47,17 @@ public class ControllerItemActionHandler implements IBlockEntityItemActionHandle
 		};
 	}
 
-	@Override
-	public ItemMatchResult getItemMatch(ItemStackKey stackKey, ControllerBlockEntityBase controller) {
+	private ItemMatchResult getItemMatch(ItemStackKey stackKey, ControllerBlockEntityBase controller) {
 		if (controller.hasMatchingStack(stackKey)) {
 			return ItemMatchResult.MATCHING_STACK;
 		} else if (controller.hasMatchingItem(stackKey.stack().getItem())) {
 			return ItemMatchResult.MATCHING_ITEM;
 		}
+		return ItemMatchResult.NO_MATCH;
+	}
+
+	@Override
+	public ItemMatchResult getItemMatch(ItemStackKey stackKey, ControllerBlockEntityBase controller, Action action) {
 		return ItemMatchResult.NO_MATCH;
 	}
 

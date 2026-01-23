@@ -101,7 +101,7 @@ public class StandardStorageActionHandler implements IBlockItemActionHandler, IE
 	}
 
 	@Override
-	public ItemMatchResult getItemMatch(ServerPlayer player, ItemStackKey stackKey, BlockPos pos) {
+	public ItemMatchResult getItemMatch(ServerPlayer player, ItemStackKey stackKey, BlockPos pos, Action action) {
 		return WorldHelper.getBlockEntity(player.level(), pos).map(blockEntity -> {
 			BlockState state = blockEntity.getBlockState();
 			if (state.getBlock() == Blocks.CHEST && state.getValue(ChestBlock.TYPE) == ChestType.RIGHT) {
