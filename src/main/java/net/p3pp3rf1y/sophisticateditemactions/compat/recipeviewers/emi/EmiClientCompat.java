@@ -7,7 +7,6 @@ import dev.emi.emi.screen.RecipeScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.ScreenEvent;
@@ -32,11 +31,6 @@ public class EmiClientCompat {
 			public boolean restockSingle(Screen screen) {
 				//in case of crafting grid return single
 				return Minecraft.getInstance().screen instanceof RecipeScreen;
-			}
-
-			@Override
-			public int getRestockSlot(Screen screen, Player player) {
-				return player.getInventory().getFreeSlot();
 			}
 
 			@Override
