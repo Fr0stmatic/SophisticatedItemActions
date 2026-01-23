@@ -69,7 +69,7 @@ public class HighlightHandler {
 		storagePositions.forEach((handlerId, positions) ->
 				ItemActionHandlerRegistry.getBlockHandler(handlerId).ifPresent(handler ->
 						positions.forEach(pos -> {
-							switch (handler.getItemMatch(serverPlayer, stackKey, pos)) {
+							switch (handler.getItemMatch(serverPlayer, stackKey, pos, IBlockItemActionHandler.Action.HIGHLIGHT)) {
 								case MATCHING_STACK -> stackPositions.add(pos);
 								case MATCHING_ITEM -> itemPositions.add(pos);
 							}
