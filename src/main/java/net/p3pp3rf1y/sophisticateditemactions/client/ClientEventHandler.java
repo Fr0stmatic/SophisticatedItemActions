@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.NonNullList;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
@@ -56,7 +57,7 @@ public class ClientEventHandler {
 		}
 
 		@Override
-		public int getRestockSlot(Screen screen, Player player) {
+		public int getRestockSlot(Screen screen, Player player, ItemStack filter) {
 			if (!(screen instanceof AbstractContainerScreen<?> containerScreen) || containerScreen.getSlotUnderMouse() == null) {
 				return -1;
 			}
@@ -169,7 +170,7 @@ public class ClientEventHandler {
 			IHoveredStackProvider provider = getHoveredStackProvider(screen);
 			if (provider != null) {
 				filter = provider.getHoveredStack(screen);
-				slot = provider.getRestockSlot(screen, player);
+				slot = provider.getRestockSlot(screen, player, filter);
 				fillEmpty |= provider.restockEmptySlot();
 				refillSingle = provider.restockSingle(screen);
 			}
@@ -265,7 +266,17 @@ public class ClientEventHandler {
 
 		boolean restockSingle(Screen screen);
 
-		int getRestockSlot(Screen screen, Player player);
+		default int getRestockSlot(Screen screen, Player player, ItemStack filter) {
+			NonNullList<ItemStack> items = player.getInventory().getNonEquipmentItems();
+			for(int slot = 0; slot < items.size(); ++slot) {
+				ItemStack stack = items.get(slot);
+				if (!stack.isEmpty() && ItemStack.isSameItemSameComponents(filter, stack) && stack.getCount() < stack.getMaxStackSize()) {
+					return slot;
+				}
+			}
+
+			return player.getInventory().getFreeSlot();
+		}
 
 		default boolean restockEmptySlot() {
 			return false;
