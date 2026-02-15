@@ -79,12 +79,17 @@ public class ClientEventHandler {
 		eventBus.addListener(ClientEventHandler::handleGuiKeyPress);
 		eventBus.addListener(ClientEventHandler::handleGuiMouseKeyPress);
 		eventBus.addListener(ClientEventHandler::renderLevelStage);
+		eventBus.addListener(ClientEventHandler::tickLevel);
 	}
 
 	private static void renderLevelStage(RenderLevelStageEvent.AfterEntities event) {
 		float partialTick = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(false);
 		ItemFlightAnimator.submitItems(event.getPoseStack(), partialTick, event.getLevelRenderState().cameraRenderState.pos);
 		EntityHighlightRenderer.render(event.getPoseStack(), partialTick, event.getLevelRenderState().cameraRenderState.pos);
+	}
+
+	private static void tickLevel(ClientTickEvent.Post event) {
+		ChestOpeningAnimator.tick(Minecraft.getInstance().level);
 	}
 
 	private static void registerKeyMappings(RegisterKeyMappingsEvent event) {

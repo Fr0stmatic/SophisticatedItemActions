@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticateditemactions.common;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
@@ -7,6 +8,8 @@ import net.p3pp3rf1y.sophisticatedcore.controller.ControllerBlockEntityBase;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticateditemactions.SophisticatedItemActions;
+
+import java.util.Optional;
 
 public class ControllerItemActionHandler implements IBlockEntityItemActionHandler<ControllerBlockEntityBase> {
 	public static final ControllerItemActionHandler INSTANCE = new ControllerItemActionHandler();
@@ -16,6 +19,11 @@ public class ControllerItemActionHandler implements IBlockEntityItemActionHandle
 	public IDepositHandler getDepositHandler(ControllerBlockEntityBase controller) {
 		Vec3 center = Vec3.atCenterOf(controller.getBlockPos());
 		return new IDepositHandler() {
+			@Override
+			public Optional<BlockPos> getPositionToOpen() {
+				return Optional.empty();
+			}
+
 			@Override
 			public Vec3 getPosition() {
 				return center;
@@ -36,6 +44,11 @@ public class ControllerItemActionHandler implements IBlockEntityItemActionHandle
 	@Override
 	public IRestockHandler getRestockHandler(ControllerBlockEntityBase controller) {
 		return new IRestockHandler() {
+			@Override
+			public Optional<BlockPos> getPositionToOpen() {
+				return Optional.empty();
+			}
+
 			@Override
 			public Vec3 getPosition() {
 				return Vec3.atCenterOf(controller.getBlockPos());
