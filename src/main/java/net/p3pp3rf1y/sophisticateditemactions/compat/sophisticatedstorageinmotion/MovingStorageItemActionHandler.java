@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticateditemactions.compat.sophisticatedstorageinmotion;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
@@ -57,6 +58,11 @@ public class MovingStorageItemActionHandler implements IEntityItemActionHandler 
 		}
 		return Optional.of(new IDepositHandler() {
 			@Override
+			public Optional<BlockPos> getPositionToOpen() {
+				return Optional.empty();
+			}
+
+			@Override
 			public Vec3 getPosition() {
 				return entity.position();
 			}
@@ -79,6 +85,11 @@ public class MovingStorageItemActionHandler implements IEntityItemActionHandler 
 			return Optional.empty();
 		}
 		return Optional.of(new IRestockHandler() {
+			@Override
+			public Optional<BlockPos> getPositionToOpen() {
+				return Optional.empty();
+			}
+
 			@Override
 			public Vec3 getPosition() {
 				return entity.position();

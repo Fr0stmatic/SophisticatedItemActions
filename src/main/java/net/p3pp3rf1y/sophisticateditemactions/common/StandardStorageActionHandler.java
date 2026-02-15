@@ -10,6 +10,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraft.world.phys.Vec3;
@@ -52,6 +53,11 @@ public class StandardStorageActionHandler implements IBlockItemActionHandler, IE
 
 		return Optional.of(new IDepositHandler() {
 			@Override
+			public Optional<BlockPos> getPositionToOpen() {
+				return Optional.empty();
+			}
+
+			@Override
 			public Vec3 getPosition() {
 				return entity.position();
 			}
@@ -76,6 +82,11 @@ public class StandardStorageActionHandler implements IBlockItemActionHandler, IE
 		}
 
 		return Optional.of(new IRestockHandler() {
+			@Override
+			public Optional<BlockPos> getPositionToOpen() {
+				return Optional.empty();
+			}
+
 			@Override
 			public Vec3 getPosition() {
 				return entity.position();
@@ -130,6 +141,14 @@ public class StandardStorageActionHandler implements IBlockItemActionHandler, IE
 		Vec3 center = Vec3.atCenterOf(pos);
 		return Optional.of(new IDepositHandler() {
 			@Override
+			public Optional<BlockPos> getPositionToOpen() {
+				if (level.getBlockEntity(pos) instanceof ChestBlockEntity chestBlockEntity && chestBlockEntity.getOpenNess(0) == 0) {
+					return Optional.of(pos);
+				}
+				return Optional.empty();
+			}
+
+			@Override
 			public Vec3 getPosition() {
 				return center;
 			}
@@ -153,6 +172,14 @@ public class StandardStorageActionHandler implements IBlockItemActionHandler, IE
 			return Optional.empty();
 		}
 		return Optional.of(new IRestockHandler() {
+			@Override
+			public Optional<BlockPos> getPositionToOpen() {
+				if (player.level().getBlockEntity(pos) instanceof ChestBlockEntity chestBlockEntity && chestBlockEntity.getOpenNess(0) == 0) {
+					return Optional.of(pos);
+				}
+				return Optional.empty();
+			}
+
 			@Override
 			public Vec3 getPosition() {
 				return Vec3.atCenterOf(pos);
