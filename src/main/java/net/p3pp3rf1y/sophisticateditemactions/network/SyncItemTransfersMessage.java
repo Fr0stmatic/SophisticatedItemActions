@@ -2,24 +2,19 @@
 package net.p3pp3rf1y.sophisticateditemactions.network;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkEvent;
 import net.p3pp3rf1y.sophisticatedcore.network.ISplittableMessage;
 import net.p3pp3rf1y.sophisticateditemactions.client.render.ItemTransferClientHandler;
+import net.p3pp3rf1y.sophisticateditemactions.common.ItemTransferData;
 
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 
-public record SyncItemTransfersMessage(Map<Vec3, List<ItemStack>> itemsTransferred, Vec3 playerPos,
+public record SyncItemTransfersMessage(List<ItemTransferData> itemTransferData, Vec3 playerPos,
 									   boolean fromPlayer) implements ISplittableMessage {
 	public static void encode(SyncItemTransfersMessage msg, FriendlyByteBuf packetBuffer) {
-		packetBuffer.writeMap(msg.itemsTransferred, (buf, vec) -> {
-			buf.writeDouble(vec.x());
-			buf.writeDouble(vec.y());
-			buf.writeDouble(vec.z());
-		}, (buf, list) -> buf.writeCollection(list, FriendlyByteBuf::writeItem));
+		packetBuffer.writeCollection(msg.itemTransferData, (friendlyByteBuf, itemTransferData) -> itemTransferData.encode(friendlyByteBuf));
 		packetBuffer.writeDouble(msg.playerPos.x());
 		packetBuffer.writeDouble(msg.playerPos.y());
 		packetBuffer.writeDouble(msg.playerPos.z());
@@ -27,12 +22,7 @@ public record SyncItemTransfersMessage(Map<Vec3, List<ItemStack>> itemsTransferr
 	}
 
 	public static SyncItemTransfersMessage decode(FriendlyByteBuf packetBuffer) {
-		return new SyncItemTransfersMessage(packetBuffer.readMap(buf -> {
-			double x = buf.readDouble();
-			double y = buf.readDouble();
-			double z = buf.readDouble();
-			return new Vec3(x, y, z);
-		}, buf -> buf.readList(FriendlyByteBuf::readItem)),
+		return new SyncItemTransfersMessage(packetBuffer.readList(ItemTransferData::decode),
 				new Vec3(packetBuffer.readDouble(), packetBuffer.readDouble(), packetBuffer.readDouble()),
 				packetBuffer.readBoolean()
 		);
@@ -45,6 +35,6 @@ public record SyncItemTransfersMessage(Map<Vec3, List<ItemStack>> itemsTransferr
 	}
 
 	public static void handleMessage(SyncItemTransfersMessage payload, NetworkEvent.Context context) {
-		ItemTransferClientHandler.handleItemTransfers(payload.itemsTransferred(), payload.playerPos(), payload.fromPlayer());
+		ItemTransferClientHandler.handleItemTransfers(payload.itemTransferData(), payload.playerPos(), payload.fromPlayer());
 	}
 }

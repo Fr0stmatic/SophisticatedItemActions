@@ -83,6 +83,7 @@ public class ClientEventHandler {
 		eventBus.addListener(ClientEventHandler::handleGuiKeyPress);
 		eventBus.addListener(ClientEventHandler::handleGuiMouseKeyPress);
 		eventBus.addListener(ClientEventHandler::renderLevelStage);
+		eventBus.addListener(ClientEventHandler::tickLevel);
 	}
 
 	private static void renderLevelStage(RenderLevelStageEvent event) {
@@ -91,6 +92,13 @@ public class ClientEventHandler {
 		}
 		ItemFlightAnimator.render(event.getPoseStack(), event.getPartialTick(), event.getCamera().getPosition());
 		EntityHighlightRenderer.render(event.getPoseStack(), event.getPartialTick(), event.getCamera().getPosition());
+	}
+
+	private static void tickLevel(TickEvent.ClientTickEvent event) {
+		if (event.phase != TickEvent.Phase.END) {
+			return;
+		}
+		ChestOpeningAnimator.tick(Minecraft.getInstance().level);
 	}
 
 	private static void registerKeyMappings(RegisterKeyMappingsEvent event) {
