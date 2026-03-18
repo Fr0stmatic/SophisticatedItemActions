@@ -15,6 +15,12 @@
   "gui.sophisticateditemactions.status.restocked_items" : "%s предметов загружено из хранилища",
   "gui.sophisticateditemactions.status.cannot_restock_item" : "Невозможно загрузить %s из какого-либо хранилища",
   "gui.sophisticateditemactions.status.cannot_restock_items" : "Невозможно загрузить какие-либо предметы из хранилища",
-  "gui.sophisticateditemactions.status.cannot_restock_full_stack" : "Инвентарь уже заполнен стаком %s",
-  "gui.sophisticateditemactions.status.cannot_restock_full_stacks" : "Инвентарь уже заполнен всеми стаками"
+  "gui.sophisticateditemactions.status.cannot_restock_full_stack" : "Стак %s уже пополнен",
+  "gui.sophisticateditemactions.status.cannot_restock_full_stacks" : "Все стаки уже пополнены",
+  "gui.sophisticateditemactions.discovery.nudge.highlight.title" : "Совет по поиску хранилища",
+  "gui.sophisticateditemactions.discovery.nudge.highlight.description" : "Нажмите %s для поиска предметов в ближайших хранилищах",
+  "gui.sophisticateditemactions.discovery.nudge.restock.title" : "Совет по загрузке",
+  "gui.sophisticateditemactions.discovery.nudge.restock.description" : "Нажмите %s для загрузки предметов из ближайших хранилищ",
+  "gui.sophisticateditemactions.discovery.nudge.deposit.title" : "Совет по разгрузке",
+  "gui.sophisticateditemactions.discovery.nudge.deposit.description" : "Нажмите %s для разгрузки преметов в ближайшие хранилища"
 }
